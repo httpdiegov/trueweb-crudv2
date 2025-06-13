@@ -1,7 +1,8 @@
 import Link from 'next/link';
-import { Instagram, Search, ShoppingCart } from 'lucide-react';
+import { Instagram, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { CartButton } from '@/components/cart/cart-button';
+import { AdminLoginDialog } from '@/components/auth/admin-login-dialog';
 
 const LogoIcon = () => (
   <svg
@@ -40,12 +41,8 @@ export function Header() {
             <Search className="h-5 w-5" />
           </Button>
           <CartButton />
-           {/* Admin link can be conditional or for development */}
-          {process.env.NODE_ENV === 'development' && (
-            <Button variant="link" asChild className="hidden sm:inline-flex text-xs text-muted-foreground hover:text-foreground">
-                <Link href="/admin">Admin</Link>
-            </Button>
-          )}
+           {/* Botón de administrador con autenticación */}
+          <AdminLoginDialog />
         </nav>
       </div>
     </header>

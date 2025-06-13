@@ -10,7 +10,7 @@ export default function AdminLayout({
       <AdminHeader />
       <main className="flex-1 p-4 md:p-8">
         <div className="container mx-auto max-w-screen-lg">
-         {children}
+          {children}
         </div>
       </main>
     </div>
