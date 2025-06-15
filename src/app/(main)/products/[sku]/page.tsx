@@ -19,22 +19,39 @@ export default async function ProductDetailPage({
 }: {
   params: { sku: string }
 }) {
-  // Obtenemos el sku de los parámetros de la ruta
-  const { sku } = await params;
+  try {
+    console.log('Iniciando carga de producto con SKU:', params.sku);
+    // Obtenemos el sku de los parámetros de la ruta
+    const { sku } = params; // No necesitamos await ya que params es síncrono
+    
+    console.log('SKU extraído:', sku);
+    if (!sku) {
+      console.error('No se proporcionó un SKU válido');
+      notFound();
+    }
 
-  // Usamos Promise.all para cargar los datos en paralelo
-  const [prenda, headersList] = await Promise.all([
-    fetchProductById(sku),
-    headers()
-  ]);
-  
-  const host = headersList.get('host');
-  const protocol = process.env.NODE_ENV === 'production' ? 'https' : 'http';
+    // Usamos Promise.all para cargar los datos en paralelo
+    const [prenda, headersList] = await Promise.all([
+      fetchProductById(sku).catch(error => {
+        console.error('Error al cargar el producto:', error);
+        return null;
+      }),
+      headers()
+    ]);
+    
+    console.log('Producto cargado:', prenda ? 'Encontrado' : 'No encontrado');
+    
+    const host = headersList.get('host');
+    const protocol = process.env.NODE_ENV === 'production' ? 'https' : 'http';
+    console.log('Host:', host, 'Protocolo:', protocol);
 
-  if (!prenda) {
-    notFound();
-  }
-  const productUrl = `${protocol}://${host}/products/${prenda.sku}`;
+    if (!prenda) {
+      console.error('Producto no encontrado para SKU:', sku);
+      notFound();
+    }
+    
+    const productUrl = `${protocol}://${host}/products/${prenda.sku}`;
+    
   const whatsappMessage = encodeURIComponent(
 `Hola, quisiera adquirir la prenda:
 
@@ -48,6 +65,11 @@ Enlace directo: ${productUrl}`
   // Solo usar imágenes a color para la galería de detalles
   const colorImages: Imagen[] = prenda.imagenes || [];
 
+  } catch (error) {
+    console.error('Error en ProductDetailPage:', error);
+    throw error; // Esto hará que Next.js muestre una página de error 500
+  }
+  
   return (
     <div className="container mx-auto max-w-screen-xl px-4 py-8 md:py-12">
       <div className="grid md:grid-cols-2 gap-8 lg:gap-12">
