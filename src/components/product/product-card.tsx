@@ -67,13 +67,7 @@ export function ProductCard({ prenda }: ProductCardProps) {
           alt={prenda.nombre_prenda}
           fill
           sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, (max-width: 1280px) 20vw, 16vw"
-          className={`object-cover transition-opacity duration-300 ${
-            // Aplicar efecto de blanco y negro si es una imagen BW
-            currentImageUrl.includes('/BW/') || currentImageUrl.includes('-bw') || 
-            (prenda.imagenes_bw && prenda.imagenes_bw.some(img => img.url === currentImageUrl))
-              ? 'grayscale hover:grayscale-0' 
-              : ''
-          }`}
+          className="object-cover transition-opacity duration-300"
           data-ai-hint={imageAiHint}
           priority={prenda.id < 7 && currentImageUrl === initialImageUrl} 
           key={currentImageUrl}

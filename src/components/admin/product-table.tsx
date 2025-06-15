@@ -29,8 +29,7 @@ export function ProductTable({ prendas }: ProductTableProps) {
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-between items-center">
-        <h2 className="font-headline text-2xl md:text-3xl">Gestión de Productos</h2>
+      <div className="flex justify-end mb-4">
         <Button asChild>
           <Link href="/admin/products/new">
             <PlusCircle className="mr-2 h-5 w-5" />
