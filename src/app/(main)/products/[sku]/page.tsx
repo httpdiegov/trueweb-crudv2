@@ -43,8 +43,8 @@ export default async function ProductDetailPage({
       notFound();
     }
     
-    // Usar URL relativa en lugar de absoluta para evitar problemas con el host
-    const productUrl = `/products/${prenda.sku}`;
+    // Usar el dominio truevintage.pe para el enlace
+    const productUrl = `https://truevintage.pe/products/${prenda.sku}`;
     
   const whatsappMessage = encodeURIComponent(
 `Hola, quisiera adquirir la prenda:
