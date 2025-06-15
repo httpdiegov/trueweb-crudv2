@@ -41,13 +41,8 @@ export default async function ProductDetailPage({
       notFound();
     }
     
-    // Generamos la URL del producto
-    let baseUrl = 'https://truevintageperu.com';
-    if (process.env.NEXT_PUBLIC_SITE_URL) {
-      baseUrl = process.env.NEXT_PUBLIC_SITE_URL;
-    } else if (process.env.VERCEL_URL) {
-      baseUrl = `https://${process.env.VERCEL_URL}`;
-    }
+    // Usamos el dominio fijo para los enlaces
+    const baseUrl = 'https://www.truevintage.pe';
     const productUrl = `${baseUrl}/products/${prenda.sku}`;
   const whatsappMessage = encodeURIComponent(
 `Hola, quisiera adquirir la prenda:

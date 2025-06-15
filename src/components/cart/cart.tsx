@@ -129,7 +129,7 @@ export function Cart() {
                         '¡Hola! Estoy interesado en los siguientes productos:\n\n' +
                         items.map(item => 
                           `- ${item.nombre_prenda} (SKU: ${item.sku}) - S/${item.precio.toFixed(2)}\n` +
-                          `  ${window.location.origin}/products/${item.sku}\n`
+                          `  https://www.truevintage.pe/products/${item.sku}\n`
                         ).join('\n') +
                         '\n' +
                         `Total: S/${totalPrice.toFixed(2)}`
