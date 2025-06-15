@@ -265,6 +265,13 @@ export async function fetchProducts(): Promise<Prenda[]> {
 
 export async function fetchProductById(sku: string): Promise<Prenda | undefined> {
   console.log(`[fetchProductById] Buscando producto con SKU: ${sku}`);
+  
+  // Validar que el SKU no esté vacío
+  if (!sku || typeof sku !== 'string') {
+    console.error('[fetchProductById] Error: SKU no válido:', sku);
+    throw new Error('SKU no válido');
+  }
+  
   try {
     // In fetchProductById function in product-actions.ts
     const productSql = `
@@ -368,10 +375,18 @@ export async function fetchProductById(sku: string): Promise<Prenda | undefined>
     return prenda;
 
   } catch (error) {
-    console.error(`[fetchProductById] Error al buscar producto con SKU ${sku}:`, error);
-    console.error('Stack trace:', (error as Error).stack);
+    const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
+    const errorStack = error instanceof Error ? error.stack : 'No hay stack trace disponible';
+    
+    console.error(`[fetchProductById] Error al buscar producto con SKU ${sku}:`, errorMessage);
+    console.error('Stack trace:', errorStack);
+    
+    // Crear un objeto de error más informativo
+    const customError = new Error(`Error al buscar producto: ${errorMessage}`);
+    (customError as any).statusCode = 500;
+    
     // Lanzar el error para que se muestre en la consola del servidor
-    throw error;
+    throw customError;
   }
 }
 

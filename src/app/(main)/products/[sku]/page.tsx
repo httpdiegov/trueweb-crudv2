@@ -19,21 +19,33 @@ export default async function ProductDetailPage({
 }: {
   params: { sku: string }
 }) {
-  // Obtenemos el sku de los parámetros de la ruta
-  const { sku } = await params;
+  try {
+    // Obtenemos el sku de los parámetros de la ruta
+    const { sku } = params;
+    
+    if (!sku || typeof sku !== 'string') {
+      console.error('Error: SKU no válido en los parámetros');
+      notFound();
+    }
 
-  // Usamos Promise.all para cargar los datos en paralelo
-  const [prenda, headersList] = await Promise.all([
-    fetchProductById(sku),
-    headers()
-  ]);
-  
-  const host = headersList.get('host');
-  const protocol = process.env.NODE_ENV === 'production' ? 'https' : 'http';
+    console.log(`[ProductDetailPage] Cargando producto con SKU: ${sku}`);
+    
+    // Usamos Promise.all para cargar los datos en paralelo
+    const [prenda, headersList] = await Promise.all([
+      fetchProductById(sku).catch(error => {
+        console.error(`[ProductDetailPage] Error al cargar el producto ${sku}:`, error);
+        throw error;
+      }),
+      headers()
+    ]);
+    
+    const host = headersList.get('host');
+    const protocol = process.env.NODE_ENV === 'production' ? 'https' : 'http';
 
-  if (!prenda) {
-    notFound();
-  }
+    if (!prenda) {
+      console.error(`[ProductDetailPage] Producto no encontrado: ${sku}`);
+      notFound();
+    }
   const productUrl = `${protocol}://${host}/products/${prenda.sku}`;
   const whatsappMessage = encodeURIComponent(
 `Hola, quisiera adquirir la prenda:
@@ -46,9 +58,12 @@ Enlace directo: ${productUrl}`
   const whatsappLink = `https://wa.me/51940866278?text=${whatsappMessage}`;
 
   // Solo usar imágenes a color para la galería de detalles
-  const colorImages: Imagen[] = prenda.imagenes || [];
+  const colorImages: Imagen[] = Array.isArray(prenda.imagenes) ? prenda.imagenes : [];
+  
+  console.log(`[ProductDetailPage] Producto cargado correctamente: ${prenda.nombre_prenda} (${prenda.sku})`);
+  console.log(`[ProductDetailPage] Imágenes encontradas: ${colorImages.length}`);
 
-  return (
+    return (
     <div className="container mx-auto max-w-screen-xl px-4 py-8 md:py-12">
       <div className="grid md:grid-cols-2 gap-8 lg:gap-12">
         <div>
@@ -151,7 +166,26 @@ Enlace directo: ${productUrl}`
         </div>
       </div>
     </div>
-  );
+    );
+  } catch (error) {
+    console.error('[ProductDetailPage] Error al cargar la página de producto:', error);
+    
+    // Si es un error 404, mostrar página no encontrada
+    if ((error as any)?.statusCode === 404) {
+      notFound();
+    }
+    
+    // Para otros errores, mostrar una página de error genérica
+    return (
+      <div className="container mx-auto max-w-screen-xl px-4 py-12 text-center">
+        <h1 className="text-2xl font-bold text-red-600 mb-4">Error al cargar el producto</h1>
+        <p className="mb-6">Lo sentimos, ha ocurrido un error al cargar la información del producto.</p>
+        <Link href="/" className="text-primary hover:underline">
+          Volver al inicio
+        </Link>
+      </div>
+    );
+  }
 }
 
 export async function generateStaticParams() {
