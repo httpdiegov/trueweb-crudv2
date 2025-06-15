@@ -2,8 +2,8 @@
 'use client';
 
 import Link from 'next/link';
-import Image from 'next/image';
 import type { Prenda } from '@/types';
+import { ImageCarousel } from '@/components/ui/image-carousel';
 import { useState, useEffect } from 'react';
 
 interface ProductCardProps {
@@ -11,66 +11,39 @@ interface ProductCardProps {
 }
 
 export function ProductCard({ prenda }: ProductCardProps) {
-  const placeholderUrl = `https://placehold.co/400x400.png`;
+  const placeholderUrl = `https://placehold.co/400x400`;
 
-  const determineInitialImageUrl = () => {
-    // Siempre intentar mostrar la primera imagen BW
-    if (prenda.imagenes_bw && prenda.imagenes_bw.length > 0) {
-      return prenda.imagenes_bw[0].url;
-    }
-    // Si no hay imágenes BW disponibles, usar la imagen a color
-    if (prenda.imagenes && prenda.imagenes.length > 0) {
-      return prenda.imagenes[0].url;
-    }
-    return placeholderUrl;
-  };
+  // Combinar imágenes BW y a color, priorizando las BW
+  const allImages = [
+    ...(prenda.imagenes_bw || []),
+    ...(prenda.imagenes || [])
+  ].filter((img, index, self) => 
+    index === self.findIndex((t) => t.url === img.url)
+  );
+  
+  // Si no hay imágenes, usar el placeholder
+  const imagesToShow = allImages.length > 0 
+    ? allImages.map(img => ({
+        url: img.url,
+        alt: prenda.nombre_prenda
+      }))
+    : [{ url: placeholderUrl, alt: 'Imagen no disponible' }];
 
-  const [initialImageUrl, setInitialImageUrl] = useState(determineInitialImageUrl());
-  const [currentImageUrl, setCurrentImageUrl] = useState(initialImageUrl);
-
-  useEffect(() => {
-    const newInitialUrl = determineInitialImageUrl();
-    setInitialImageUrl(newInitialUrl);
-    setCurrentImageUrl(newInitialUrl);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [prenda.id, prenda.imagenes, prenda.imagenes_bw]);
-
-  const handleMouseEnter = () => {
-    // Si hay más de una imagen BW, mostrar la segunda al hacer hover
-    if (prenda.imagenes_bw && prenda.imagenes_bw.length > 1) {
-      setCurrentImageUrl(prenda.imagenes_bw[1].url);
-    } 
-    // Si hay solo una imagen BW, no hacer nada al hacer hover
-    // Si no hay imágenes BW, mostrar la segunda imagen a color al hacer hover
-    else if (prenda.imagenes && prenda.imagenes.length > 1) {
-      setCurrentImageUrl(prenda.imagenes[1].url);
-    }
-    // Si no hay imágenes alternativas, no hacer nada al hacer hover
-  };
-
-  const handleMouseLeave = () => {
-    setCurrentImageUrl(initialImageUrl);
-  };
-
+  // Eliminamos el estado de imagen actual ya que ahora lo maneja el carrusel
   const imageAiHint = `${prenda.categoria_nombre?.toLowerCase() || 'ropa'} ${prenda.nombre_prenda?.split(" ")[0]?.toLowerCase() || 'producto'}`.substring(0,20);
 
   return (
     <Link
       href={`/products/${prenda.sku}`}
       className="block group"
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
     >
       <div className="relative w-full overflow-hidden bg-muted aspect-square">
-        <Image
-          src={currentImageUrl}
-          alt={prenda.nombre_prenda}
-          fill
-          sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, (max-width: 1280px) 20vw, 16vw"
-          className="object-cover transition-opacity duration-300"
-          data-ai-hint={imageAiHint}
-          priority={prenda.id < 7 && currentImageUrl === initialImageUrl} 
-          key={currentImageUrl}
+        <ImageCarousel 
+          images={imagesToShow}
+          className="w-full h-full"
+          showDots={imagesToShow.length > 1}
+          showArrows={imagesToShow.length > 1}
+          autoPlay={false}
         />
       </div>
       <div className="mt-2 text-center">
