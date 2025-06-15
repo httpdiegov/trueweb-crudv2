@@ -264,36 +264,37 @@ export async function fetchProducts(): Promise<Prenda[]> {
 }
 
 export async function fetchProductById(id: string | number): Promise<Prenda | undefined> {
-  console.log('fetchProductById called with ID:', id); // Debug log
+  console.log('fetchProductById called with ID/SKU:', id); // Debug log
   try {
-    // Convertir el ID a número si es una cadena
-    const productId = typeof id === 'string' ? parseInt(id, 10) : id;
+    // Determinar si el parámetro es un ID numérico o un SKU
+    const isNumericId = !isNaN(Number(id));
     
-    if (isNaN(productId)) {
-      console.error('ID de producto no válido:', id);
-      return undefined;
+    let productSql = `
+      SELECT DISTINCT
+        p.id, p.drop_name, p.sku, p.nombre_prenda, p.precio,
+        p.caracteristicas, p.medidas, p.desc_completa, p.stock,
+        p.categoria_id, c.nom_categoria AS categoria_nombre, c.prefijo AS categoria_prefijo,
+        p.marca_id, m.nombre_marca AS marca_nombre,
+        p.talla_id, t.nom_talla AS talla_nombre,
+        p.created_at, p.updated_at
+      FROM prendas p
+      LEFT JOIN categorias c ON p.categoria_id = c.id
+      LEFT JOIN marcas m ON p.marca_id = m.id
+      LEFT JOIN tallas t ON p.talla_id = t.id
+      WHERE `;
+      
+    // Añadir condición WHERE apropiada según si es ID numérico o SKU
+    if (isNumericId) {
+      productSql += 'p.id = ?';
+    } else {
+      productSql += 'p.sku = ?';
     }
-
-    const productSql = `
-    SELECT DISTINCT
-      p.id, p.drop_name, p.sku, p.nombre_prenda, p.precio,
-      p.caracteristicas, p.medidas, p.desc_completa, p.stock,
-      p.categoria_id, c.nom_categoria AS categoria_nombre, c.prefijo AS categoria_prefijo,
-      p.marca_id, m.nombre_marca AS marca_nombre,
-      p.talla_id, t.nom_talla AS talla_nombre,
-      p.created_at, p.updated_at
-    FROM prendas p
-    LEFT JOIN categorias c ON p.categoria_id = c.id
-    LEFT JOIN marcas m ON p.marca_id = m.id
-    LEFT JOIN tallas t ON p.talla_id = t.id
-    WHERE p.id = ?
-  `;
   console.log('SQL Query:', productSql.replace(/\s+/g, ' ').trim()); // Debug log
-    const rows = await query(productSql, [productId]) as any[];
+    const rows = await query(productSql, [isNumericId ? Number(id) : id]) as any[];
     console.log('Query result rows:', rows); // Debug log
     
     if (rows.length === 0) {
-      console.log('No se encontró ningún producto con el ID:', productId); // Debug log
+      console.log(`No se encontró ningún producto con el ${isNumericId ? 'ID' : 'SKU'}:`, id); // Debug log
       return undefined;
     }
     
