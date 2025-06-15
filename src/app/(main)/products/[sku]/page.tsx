@@ -9,7 +9,7 @@ import { Truck, PackageCheck, Tag, Ruler, MessageCircle, Instagram } from 'lucid
 import { AddToCartWrapper } from '@/components/product/add-to-cart-wrapper';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { headers } from 'next/headers';
+// No necesitamos headers ya que usaremos URL relativa para WhatsApp
 import type { Imagen } from '@/types';
 
 
@@ -30,23 +30,19 @@ export default async function ProductDetailPage({
 
     console.log(`[ProductDetailPage] Cargando producto con SKU: ${sku}`);
     
-    // Usamos Promise.all para cargar los datos en paralelo
-    const [prenda, headersList] = await Promise.all([
-      fetchProductById(sku).catch(error => {
-        console.error(`[ProductDetailPage] Error al cargar el producto ${sku}:`, error);
-        throw error;
-      }),
-      headers()
-    ]);
-    
-    const host = headersList.get('host');
-    const protocol = process.env.NODE_ENV === 'production' ? 'https' : 'http';
+    // Cargamos el producto
+    const prenda = await fetchProductById(sku).catch(error => {
+      console.error(`[ProductDetailPage] Error al cargar el producto ${sku}:`, error);
+      throw error;
+    });
 
     if (!prenda) {
       console.error(`[ProductDetailPage] Producto no encontrado: ${sku}`);
       notFound();
     }
-  const productUrl = `${protocol}://${host}/products/${prenda.sku}`;
+    
+    // Usamos URL relativa para evitar problemas con el host dinámico
+    const productUrl = `/products/${prenda.sku}`;
   const whatsappMessage = encodeURIComponent(
 `Hola, quisiera adquirir la prenda:
 
@@ -55,6 +51,7 @@ Precio: S/${prenda.precio.toFixed(2)}
 
 Enlace directo: ${productUrl}`
   );
+  // Usamos el número de teléfono directamente en el enlace
   const whatsappLink = `https://wa.me/51940866278?text=${whatsappMessage}`;
 
   // Solo usar imágenes a color para la galería de detalles
