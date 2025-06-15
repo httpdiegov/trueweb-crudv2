@@ -2,6 +2,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { useSwipeable } from 'react-swipeable';
 import NextImage from 'next/image';
 import type { Imagen } from '@/types';
 import { cn } from '@/lib/utils';
@@ -62,6 +63,15 @@ export function ProductImageGallery({ images, productName }: ProductImageGallery
     setCurrentIndex(index);
   };
 
+  // Configuración de gestos de deslizamiento
+  const swipeHandlers = useSwipeable({
+    onSwipedLeft: () => handleNextImage(),
+    onSwipedRight: () => handlePreviousImage(),
+    trackMouse: true,
+    preventScrollOnSwipe: true,
+    trackTouch: true
+  });
+
   if (!images || images.length === 0) {
     return (
       <Card className="shadow-md">
@@ -83,40 +93,57 @@ export function ProductImageGallery({ images, productName }: ProductImageGallery
 
   return (
     <div className="flex flex-col gap-4">
-      <Card className="shadow-md">
+      <Card className="shadow-md overflow-hidden">
         <CardContent className="p-2">
-          <div className="aspect-[3/4] w-full relative bg-muted rounded-md overflow-hidden group">
-            <NextImage
-              src={displayImage.url}
-              alt={`${productName} - Vista ${currentIndex + 1} de ${images.length}`}
-              fill
-              sizes="(max-width: 767px) calc(100vw - 2rem), (max-width: 1279px) calc(50vw - 3rem), 620px"
-              className="object-cover transition-opacity duration-300 ease-in-out"
-              priority
-              quality={100}
-              data-ai-hint={"product detail"}
-              key={displayImage.id} // Re-render if image ID changes, helping with transitions if URLs are stable
-            />
+          <div 
+            {...swipeHandlers}
+            className="aspect-[3/4] w-full relative bg-muted rounded-md overflow-hidden group touch-pan-y touch-pinch-zoom select-none"
+          >
+            <div className="relative w-full h-full">
+              <NextImage
+                src={displayImage.url}
+                alt={`${productName} - Vista ${currentIndex + 1} de ${images.length}`}
+                fill
+                sizes="(max-width: 767px) calc(100vw - 2rem), (max-width: 1279px) calc(50vw - 3rem), 620px"
+                className="object-cover transition-opacity duration-300 ease-in-out select-none touch-none"
+                priority
+                quality={100}
+                data-ai-hint={"product detail"}
+                key={displayImage.id}
+                draggable={false}
+              />
+            </div>
             {hasMultipleImages && (
               <>
                 <Button
                   variant="ghost"
                   size="icon"
                   onClick={handlePreviousImage}
+                  className="absolute left-2 top-1/2 -translate-y-1/2 bg-background/80 hover:bg-background/90 rounded-full h-10 w-10 opacity-0 group-hover:opacity-100 transition-opacity focus:opacity-100 focus:ring-2 focus:ring-ring focus:ring-offset-2 z-10"
                   aria-label="Imagen anterior"
-                  className="absolute left-2 top-1/2 -translate-y-1/2 z-10 bg-background/50 hover:bg-background/80 text-foreground opacity-0 group-hover:opacity-100 transition-opacity rounded-full"
                 >
-                  <ChevronLeft className="h-6 w-6" />
+                  <ChevronLeft className="h-5 w-5" />
                 </Button>
                 <Button
                   variant="ghost"
                   size="icon"
                   onClick={handleNextImage}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 bg-background/80 hover:bg-background/90 rounded-full h-10 w-10 opacity-0 group-hover:opacity-100 transition-opacity focus:opacity-100 focus:ring-2 focus:ring-ring focus:ring-offset-2 z-10"
                   aria-label="Siguiente imagen"
-                  className="absolute right-2 top-1/2 -translate-y-1/2 z-10 bg-background/50 hover:bg-background/80 text-foreground opacity-0 group-hover:opacity-100 transition-opacity rounded-full"
                 >
-                  <ChevronRight className="h-6 w-6" />
+                  <ChevronRight className="h-5 w-5" />
                 </Button>
+                <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-2 z-10">
+                  {images.map((_, index) => (
+                    <button
+                      key={index}
+                      onClick={() => handleThumbnailClick(index)}
+                      className={`h-2 rounded-full transition-all ${currentIndex === index ? 'w-6 bg-foreground' : 'w-2 bg-foreground/30'}`}
+                      aria-label={`Ir a la imagen ${index + 1} de ${images.length}`}
+                      aria-current={currentIndex === index ? 'step' : undefined}
+                    />
+                  ))}
+                </div>
               </>
             )}
           </div>

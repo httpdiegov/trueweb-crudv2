@@ -102,16 +102,24 @@ Enlace directo: ${productUrl}`
 
             <div>
               {prenda.caracteristicas && (
-                <>
+                <div>
                   <h3 className="text-lg font-medium mb-1">Características</h3>
-                  <p className="text-sm text-muted-foreground mb-4">{prenda.caracteristicas}</p>
-                </>
+                  <div className="text-sm text-muted-foreground mb-4 space-y-1">
+                    {prenda.caracteristicas.split('\n').map((line, i) => (
+                      <p key={i} className="whitespace-pre-line">{line}</p>
+                    ))}
+                  </div>
+                </div>
               )}
               {prenda.medidas && (
-                <>
+                <div>
                   <h3 className="text-lg font-medium mb-1">Medidas</h3>
-                  <p className="text-sm text-muted-foreground mb-4">{prenda.medidas}</p>
-                </>
+                  <div className="text-sm text-muted-foreground mb-4 space-y-1">
+                    {prenda.medidas.split('\n').map((line, i) => (
+                      <p key={i} className="whitespace-pre-line">{line}</p>
+                    ))}
+                  </div>
+                </div>
               )}
               <div className="mt-4 text-sm text-muted-foreground space-y-1">
                 <p>➤ Revisar bien fotos y medidas antes de comprar.</p>
