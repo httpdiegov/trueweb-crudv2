@@ -264,14 +264,6 @@ export async function fetchProducts(): Promise<Prenda[]> {
 }
 
 export async function fetchProductById(sku: string): Promise<Prenda | undefined> {
-  console.log(`[fetchProductById] Buscando producto con SKU: ${sku}`);
-  
-  // Validar que el SKU no esté vacío
-  if (!sku || typeof sku !== 'string') {
-    console.error('[fetchProductById] Error: SKU no válido:', sku);
-    throw new Error('SKU no válido');
-  }
-  
   try {
     // In fetchProductById function in product-actions.ts
     const productSql = `
@@ -289,15 +281,10 @@ export async function fetchProductById(sku: string): Promise<Prenda | undefined>
     WHERE p.sku = ?
   `;
     const rows = await query(productSql, [sku]) as any[];
-    console.log(`[fetchProductById] Resultados de la consulta SQL:`, JSON.stringify(rows, null, 2));
-    
     if (rows.length === 0) {
-      console.log(`[fetchProductById] No se encontró ningún producto con SKU: ${sku}`);
       return undefined;
     }
-    
     const row = rows[0];
-    console.log(`[fetchProductById] Producto encontrado:`, JSON.stringify(row, null, 2));
 
     const imagesSql = `
       SELECT id, prenda_id, url
@@ -307,7 +294,6 @@ export async function fetchProductById(sku: string): Promise<Prenda | undefined>
     `; // Ordering by URL pattern is more reliable here too.
     const prendaId = rows[0].id;
     const allImageRowsForPrenda = await query(imagesSql, [prendaId]) as Imagen[];
-    console.log(`[fetchProductById] Imágenes encontradas para el producto:`, JSON.stringify(allImageRowsForPrenda, null, 2));
 
     // Expresión regular para detectar imágenes BW
     const bwImageRegex = /(bw|blanco|blanco-negro|bn|bw-?\d*)\.(jpg|jpeg|png|webp|gif)$/i;
@@ -375,18 +361,8 @@ export async function fetchProductById(sku: string): Promise<Prenda | undefined>
     return prenda;
 
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
-    const errorStack = error instanceof Error ? error.stack : 'No hay stack trace disponible';
-    
-    console.error(`[fetchProductById] Error al buscar producto con SKU ${sku}:`, errorMessage);
-    console.error('Stack trace:', errorStack);
-    
-    // Crear un objeto de error más informativo
-    const customError = new Error(`Error al buscar producto: ${errorMessage}`);
-    (customError as any).statusCode = 500;
-    
-    // Lanzar el error para que se muestre en la consola del servidor
-    throw customError;
+    console.error(`Error fetching product by sku ${sku}:`, error);
+    return undefined;
   }
 }
 

@@ -1,10 +1,8 @@
-import { useState } from 'react';
 import Link from 'next/link';
 import { Instagram, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { CartButton } from '@/components/cart/cart-button';
 import { AdminLoginDialog } from '@/components/auth/admin-login-dialog';
-import { SearchDialog } from '@/components/search/search-dialog';
 
 const LogoIcon = () => (
   <svg
@@ -27,8 +25,6 @@ const LogoIcon = () => (
 );
 
 export function Header() {
-  const [isSearchOpen, setIsSearchOpen] = useState(false);
-
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 max-w-screen-2xl items-center justify-between px-4 md:px-6">
@@ -41,19 +37,9 @@ export function Header() {
               <Instagram className="h-5 w-5" />
             </Link>
           </Button>
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            className="text-foreground/70 hover:text-foreground" 
-            aria-label="Search"
-            onClick={() => setIsSearchOpen(true)}
-          >
+          <Button variant="ghost" size="icon" className="text-foreground/70 hover:text-foreground" aria-label="Search">
             <Search className="h-5 w-5" />
           </Button>
-          <SearchDialog 
-            isOpen={isSearchOpen} 
-            onOpenChange={setIsSearchOpen}
-          />
           <CartButton />
            {/* Botón de administrador con autenticación */}
           <AdminLoginDialog />

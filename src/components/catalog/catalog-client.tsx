@@ -1,14 +1,20 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { fetchProducts } from '@/app/actions/product-actions';
 import { ProductList } from '@/components/product/product-list';
 import { Skeleton } from '@/components/ui/skeleton';
-import type { Prenda } from '@/types';
+import { Button } from '@/components/ui/button';
+import { ProductFilterPopover } from '@/components/product/product-filter-popover';
+import { ArrowDown, ArrowUp, ArrowUpDown, ChevronDown, Sparkles, Filter, X } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import type { Categoria, Talla, Prenda } from '@/types';
 
 interface CatalogClientProps {
-  initialCategories: any[];
-  initialSizes: any[];
+  initialCategories: Categoria[];
+  initialSizes: Talla[];
   initialDropValue: string;
   category?: string;
   size?: string;
@@ -21,8 +27,17 @@ export function CatalogClient({
   category,
   size
 }: CatalogClientProps) {
+  const [showNewArrivals, setShowNewArrivals] = useState(false);
+  const [categories] = useState(initialCategories);
+  const [sizes] = useState(initialSizes);
+  const [dropValue] = useState(initialDropValue);
   const [products, setProducts] = useState<Prenda[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [sortOption, setSortOption] = useState<string>('');
+  const [isSortOpen, setIsSortOpen] = useState(false);
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [selectedSizes, setSelectedSizes] = useState<string[]>([]);
 
   // Cargar productos al montar el componente
   useEffect(() => {
@@ -41,10 +56,270 @@ export function CatalogClient({
     loadProducts();
   }, []);
 
+  // Función auxiliar para convertir parámetros de URL en arrays
+  const getArrayFromParam = (param: string | string[] | undefined): string[] => {
+    if (!param) return [];
+    if (Array.isArray(param)) return param.filter(Boolean);
+    return param.split(',').filter(Boolean);
+  };
+
+  // Procesar parámetros de búsqueda
+  const categoriesParams = useMemo(() => {
+    return selectedCategories.length > 0 ? selectedCategories : getArrayFromParam(category);
+  }, [category, selectedCategories]);
+  
+  const sizesParams = useMemo(() => {
+    return selectedSizes.length > 0 ? selectedSizes : getArrayFromParam(size);
+  }, [size, selectedSizes]);
+
+  // Aplicar filtros y ordenación
+  const filteredAndSortedProducts = useMemo(() => {
+    console.log('Aplicando filtros con:', { 
+      categoriesParams, 
+      sizesParams, 
+      showNewArrivals, 
+      dropValue,
+      sortOption,
+      totalProducts: products.length
+    });
+    
+    // 1. Aplicar filtro de categoría si existe
+    let filtered = [...products];
+    
+    if (categoriesParams.length > 0) {
+      filtered = filtered.filter(p => 
+        p.categoria_nombre && categoriesParams.includes(p.categoria_nombre)
+      );
+      console.log(`Después de filtrar por categoría (${categoriesParams.join(', ')}):`, filtered.length, 'productos');
+    }
+    
+    // 2. Aplicar filtro de talla si existe
+    if (sizesParams.length > 0) {
+      filtered = filtered.filter(p => 
+        p.talla_nombre && sizesParams.includes(p.talla_nombre)
+      );
+      console.log(`Después de filtrar por talla (${sizesParams.join(', ')}):`, filtered.length, 'productos');
+    }
+    
+    // 3. Aplicar filtro de nuevos ingresos si está activado
+    if (showNewArrivals && dropValue) {
+      const dropProducts = filtered.filter(p => p.drop_name === dropValue);
+      const nonDropProducts = filtered.filter(p => p.drop_name !== dropValue);
+      filtered = [...dropProducts, ...nonDropProducts];
+      console.log('Después de filtrar por nuevos ingresos:', filtered.length, 'productos');
+    }
+
+    // 4. Aplicar ordenación
+    const sorted = [...filtered].sort((a, b) => {
+      switch (sortOption) {
+        case 'price-asc':
+          return a.precio - b.precio;
+        case 'price-desc':
+          return b.precio - a.precio;
+        case 'size-asc':
+          return (a.talla_nombre || '').localeCompare(b.talla_nombre || '');
+        case 'size-desc':
+          return (b.talla_nombre || '').localeCompare(a.talla_nombre || '');
+        default:
+          return 0;
+      }
+    });
+    
+    console.log('Productos después de aplicar todos los filtros y ordenación:', sorted.length);
+    return sorted;
+  }, [products, categoriesParams, sizesParams, showNewArrivals, dropValue, sortOption]);
+  
+  // Función para alternar nuevos ingresos
+  const toggleNewArrivals = () => {
+    setShowNewArrivals(!showNewArrivals);
+  };
+
   return (
     <div className="container mx-auto max-w-screen-2xl px-2 py-4 sm:px-4 sm:py-6 md:px-6 md:py-8">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
         <h1 className="text-2xl md:text-3xl font-bold">Catálogo</h1>
+        <div className="flex items-center gap-2">
+          <div className="relative">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="gap-2"
+              onClick={() => setIsFilterOpen(!isFilterOpen)}
+            >
+              <Filter className="h-4 w-4" />
+              Filtrar Prendas
+              {(selectedCategories.length > 0 || selectedSizes.length > 0) && (
+                <span className="ml-1 h-5 w-5 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs">
+                  {selectedCategories.length + selectedSizes.length}
+                </span>
+              )}
+            </Button>
+            
+            {isFilterOpen && (
+              <div className="absolute right-0 mt-2 w-64 rounded-md border bg-background shadow-lg z-50">
+                <div className="p-4">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="font-medium">Filtros</h3>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-8 px-2"
+                      onClick={() => {
+                        setSelectedCategories([]);
+                        setSelectedSizes([]);
+                      }}
+                    >
+                      <X className="h-4 w-4 mr-1" />
+                      Limpiar
+                    </Button>
+                  </div>
+                  
+                  <ScrollArea className="h-64 pr-4">
+                    <div className="space-y-6">
+                      <div>
+                        <h4 className="text-sm font-medium mb-2">Tipo de Prenda</h4>
+                        <div className="space-y-2">
+                          {categories.map((cat) => (
+                            <div key={cat.id} className="flex items-center space-x-2">
+                              <Checkbox 
+                                id={`cat-${cat.id}`}
+                                checked={selectedCategories.includes(cat.nom_categoria)}
+                                onCheckedChange={(checked) => {
+                                  setSelectedCategories(prev => 
+                                    checked 
+                                      ? [...prev, cat.nom_categoria]
+                                      : prev.filter(c => c !== cat.nom_categoria)
+                                  );
+                                }}
+                              />
+                              <Label htmlFor={`cat-${cat.id}`} className="text-sm font-normal">
+                                {cat.nom_categoria}
+                              </Label>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                      
+                      <div>
+                        <h4 className="text-sm font-medium mb-2">Tallas</h4>
+                        <div className="flex flex-wrap gap-2">
+                          {sizes.map((size) => (
+                            <div key={size.id} className="flex items-center">
+                              <Checkbox 
+                                id={`size-${size.id}`}
+                                className="sr-only"
+                                checked={selectedSizes.includes(size.nom_talla)}
+                                onCheckedChange={(checked) => {
+                                  setSelectedSizes(prev => 
+                                    checked 
+                                      ? [...prev, size.nom_talla]
+                                      : prev.filter(s => s !== size.nom_talla)
+                                  );
+                                }}
+                              />
+                              <Label 
+                                htmlFor={`size-${size.id}`}
+                                className={`flex items-center justify-center h-9 w-9 rounded-md border text-sm font-medium cursor-pointer transition-colors ${
+                                  selectedSizes.includes(size.nom_talla)
+                                    ? 'bg-primary text-primary-foreground border-primary'
+                                    : 'hover:bg-accent hover:text-accent-foreground'
+                                }`}
+                              >
+                                {size.nom_talla}
+                              </Label>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </ScrollArea>
+                </div>
+              </div>
+            )}
+          </div>
+          
+          <Button 
+            variant={showNewArrivals ? "default" : "outline"} 
+            size="sm" 
+            className="gap-2"
+            onClick={toggleNewArrivals}
+          >
+            <Sparkles className="h-4 w-4" />
+            Nuevos Ingresos
+          </Button>
+          <div className="relative">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="gap-2"
+              onClick={() => setIsSortOpen(!isSortOpen)}
+            >
+              <ArrowUpDown className="h-4 w-4" />
+              Ordenar
+              <ChevronDown className={`h-4 w-4 transition-transform ${isSortOpen ? 'rotate-180' : ''}`} />
+            </Button>
+            {isSortOpen && (
+              <div className="absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white dark:bg-gray-800 ring-1 ring-black ring-opacity-5 z-50">
+                <div className="py-1" role="menu" aria-orientation="vertical">
+                  <button
+                    onClick={() => {
+                      setSortOption('price-asc');
+                      setIsSortOpen(false);
+                    }}
+                    className={`w-full text-left px-4 py-2 text-sm flex items-center gap-2 hover:bg-gray-100 dark:hover:bg-gray-700 ${sortOption === 'price-asc' ? 'bg-gray-100 dark:bg-gray-700' : ''}`}
+                    role="menuitem"
+                  >
+                    <ArrowUp className="h-4 w-4" />
+                    Precio: Menor a mayor
+                  </button>
+                  <button
+                    onClick={() => {
+                      setSortOption('price-desc');
+                      setIsSortOpen(false);
+                    }}
+                    className={`w-full text-left px-4 py-2 text-sm flex items-center gap-2 hover:bg-gray-100 dark:hover:bg-gray-700 ${sortOption === 'price-desc' ? 'bg-gray-100 dark:bg-gray-700' : ''}`}
+                    role="menuitem"
+                  >
+                    <ArrowDown className="h-4 w-4" />
+                    Precio: Mayor a menor
+                  </button>
+                  <button
+                    onClick={() => {
+                      setSortOption('size-asc');
+                      setIsSortOpen(false);
+                    }}
+                    className={`w-full text-left px-4 py-2 text-sm flex items-center gap-2 hover:bg-gray-100 dark:hover:bg-gray-700 ${sortOption === 'size-asc' ? 'bg-gray-100 dark:bg-gray-700' : ''}`}
+                    role="menuitem"
+                  >
+                    <ArrowUp className="h-4 w-4" />
+                    Talla: A-Z
+                  </button>
+                  <button
+                    onClick={() => {
+                      setSortOption('size-desc');
+                      setIsSortOpen(false);
+                    }}
+                    className={`w-full text-left px-4 py-2 text-sm flex items-center gap-2 hover:bg-gray-100 dark:hover:bg-gray-700 ${sortOption === 'size-desc' ? 'bg-gray-100 dark:bg-gray-700' : ''}`}
+                    role="menuitem"
+                  >
+                    <ArrowDown className="h-4 w-4" />
+                    Talla: Z-A
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+          {sortOption && (
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="text-xs text-muted-foreground"
+              onClick={() => setSortOption('')}
+            >
+              Limpiar
+            </Button>
+          )}
+        </div>
       </div>
       
       <section>
@@ -52,9 +327,9 @@ export function CatalogClient({
           <ProductListLoadingSkeleton />
         ) : (
           <ProductList 
-            prendas={products} 
-            showNewArrivals={false}
-            dropValue=""
+            prendas={filteredAndSortedProducts} 
+            showNewArrivals={showNewArrivals}
+            dropValue={dropValue}
           />
         )}
       </section>
