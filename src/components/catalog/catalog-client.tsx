@@ -156,7 +156,7 @@ export function CatalogClient({
             
             {isFilterOpen && (
               <div className="fixed inset-0 z-50 overflow-y-auto">
-                <div className="flex min-h-screen items-end justify-center px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+                <div className="flex min-h-screen items-end justify-center text-center sm:block sm:p-0">
                   {/* Fondo oscuro */}
                   <div 
                     className="fixed inset-0 bg-black/50 transition-opacity" 
@@ -166,10 +166,10 @@ export function CatalogClient({
                   {/* Panel de filtros */}
                   <div className="fixed inset-x-0 bottom-0 transform bg-white dark:bg-gray-900 rounded-t-2xl shadow-xl transition-all sm:my-8 sm:mx-auto sm:max-w-lg sm:rounded-lg sm:max-h-[90vh] flex flex-col">
                     {/* Encabezado */}
-                    <div className="px-4 pt-5 pb-4 sm:p-6 border-b">
+                    <div className="sticky top-0 z-10 bg-white dark:bg-gray-900 px-4 pt-4 pb-3 border-b">
                       <div className="flex items-center justify-between">
-                        <h3 className="text-lg font-medium text-gray-900 dark:text-white">Filtros</h3>
-                        <div className="flex gap-2">
+                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Filtros</h3>
+                        <div className="flex items-center gap-2">
                           <Button
                             variant="ghost"
                             size="sm"
@@ -177,7 +177,7 @@ export function CatalogClient({
                               setSelectedCategories([]);
                               setSelectedSizes([]);
                             }}
-                            className="text-sm"
+                            className="text-sm text-primary hover:bg-transparent hover:text-primary/80 px-2 h-8"
                           >
                             Limpiar
                           </Button>
@@ -185,9 +185,9 @@ export function CatalogClient({
                             variant="ghost"
                             size="icon"
                             onClick={() => setIsFilterOpen(false)}
-                            className="h-8 w-8 p-0"
+                            className="h-9 w-9 p-0 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800"
                           >
-                            <X className="h-4 w-4" />
+                            <X className="h-5 w-5" />
                             <span className="sr-only">Cerrar</span>
                           </Button>
                         </div>
@@ -197,11 +197,12 @@ export function CatalogClient({
                     {/* Contenido desplazable */}
                     <ScrollArea className="flex-1 px-4 py-2">
                       <div className="space-y-6 py-2">
-                        <div>
-                          <h4 className="text-sm font-medium mb-3 text-gray-900 dark:text-white">Tipo de Prenda</h4>
-                          <div className="space-y-3">
+                        {/* Sección de Categorías */}
+                        <div className="space-y-3">
+                          <h4 className="text-sm font-medium text-gray-900 dark:text-white px-1">Tipo de Prenda</h4>
+                          <div className="space-y-2">
                             {categories.map((cat) => (
-                              <div key={cat.id} className="flex items-center space-x-3">
+                              <div key={cat.id} className="flex items-center space-x-3 py-1.5 px-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800/50">
                                 <Checkbox 
                                   id={`cat-${cat.id}`}
                                   checked={selectedCategories.includes(cat.nom_categoria)}
@@ -212,9 +213,12 @@ export function CatalogClient({
                                         : prev.filter(c => c !== cat.nom_categoria)
                                     );
                                   }}
-                                  className="h-5 w-5 rounded border-gray-300 text-primary focus:ring-primary"
+                                  className="h-5 w-5 rounded-md border-gray-300 text-primary focus:ring-primary"
                                 />
-                                <Label htmlFor={`cat-${cat.id}`} className="text-sm font-normal cursor-pointer">
+                                <Label 
+                                  htmlFor={`cat-${cat.id}`} 
+                                  className="text-sm font-normal text-gray-900 dark:text-gray-100 cursor-pointer flex-1"
+                                >
                                   {cat.nom_categoria}
                                 </Label>
                               </div>
@@ -222,9 +226,10 @@ export function CatalogClient({
                           </div>
                         </div>
                         
-                        <div>
-                          <h4 className="text-sm font-medium mb-3 text-gray-900 dark:text-white">Tallas</h4>
-                          <div className="grid grid-cols-5 gap-2">
+                        {/* Sección de Tallas */}
+                        <div className="space-y-3 pb-4">
+                          <h4 className="text-sm font-medium text-gray-900 dark:text-white px-1">Tallas</h4>
+                          <div className="grid grid-cols-6 gap-2">
                             {sizes.map((size) => (
                               <div key={size.id} className="flex items-center justify-center">
                                 <Checkbox 
@@ -241,10 +246,10 @@ export function CatalogClient({
                                 />
                                 <Label 
                                   htmlFor={`size-${size.id}`}
-                                  className={`flex items-center justify-center h-12 w-full rounded-md border text-sm font-medium cursor-pointer transition-colors ${
+                                  className={`flex items-center justify-center h-12 w-full rounded-lg border-2 text-sm font-medium cursor-pointer transition-colors ${
                                     selectedSizes.includes(size.nom_talla)
-                                      ? 'bg-primary text-primary-foreground border-primary'
-                                      : 'hover:bg-gray-100 dark:hover:bg-gray-800 border-gray-200 dark:border-gray-700'
+                                      ? 'bg-primary text-white border-primary'
+                                      : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100 hover:border-gray-300 dark:hover:border-gray-600'
                                   }`}
                                 >
                                   {size.nom_talla}
@@ -262,16 +267,6 @@ export function CatalogClient({
               </div>
             )}
           </div>
-          
-          <Button 
-            variant={showNewArrivals ? "default" : "outline"} 
-            size="sm" 
-            className="gap-2"
-            onClick={toggleNewArrivals}
-          >
-            <Sparkles className="h-4 w-4" />
-            Nuevos Ingresos
-          </Button>
           <div className="relative">
             <Button 
               variant="outline" 
