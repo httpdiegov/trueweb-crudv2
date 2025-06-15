@@ -30,27 +30,21 @@ export default async function ProductDetailPage({
       notFound();
     }
 
-    // Usamos Promise.all para cargar los datos en paralelo
-    const [prenda, headersList] = await Promise.all([
-      fetchProductById(sku).catch(error => {
-        console.error('Error al cargar el producto:', error);
-        return null;
-      }),
-      headers()
-    ]);
+    // Cargar el producto
+    const prenda = await fetchProductById(sku).catch(error => {
+      console.error('Error al cargar el producto:', error);
+      return null;
+    });
     
     console.log('Producto cargado:', prenda ? 'Encontrado' : 'No encontrado');
-    
-    const host = headersList.get('host');
-    const protocol = process.env.NODE_ENV === 'production' ? 'https' : 'http';
-    console.log('Host:', host, 'Protocolo:', protocol);
 
     if (!prenda) {
       console.error('Producto no encontrado para SKU:', sku);
       notFound();
     }
     
-    const productUrl = `${protocol}://${host}/products/${prenda.sku}`;
+    // Usar URL relativa en lugar de absoluta para evitar problemas con el host
+    const productUrl = `/products/${prenda.sku}`;
     
   const whatsappMessage = encodeURIComponent(
 `Hola, quisiera adquirir la prenda:
