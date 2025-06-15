@@ -3,8 +3,13 @@ import './globals.css';
 import { ToastProvider } from '@/components/providers/toast-provider';
 
 export const metadata: Metadata = {
-  title: 'TrueVintage Boutique',
-  description: 'Gestion de prendas de TrueVintage Boutique',
+  title: 'True Vintage',
+  description: 'Gestion de prendas de True Vintage',
+  icons: {
+    icon: [
+      { url: 'https://truevintageperu.com/vtg/logo_grande.jpg', type: 'image/jpg' },
+    ],
+  },
 };
 
 export default function RootLayout({
@@ -15,6 +20,7 @@ export default function RootLayout({
   return (
     <html lang="es" suppressHydrationWarning>
       <head>
+        <link rel="icon" type="image/jpg" href="https://truevintageperu.com/vtg/logo_grande.jpg" sizes="any" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=Belleza&display=swap" rel="stylesheet" />
