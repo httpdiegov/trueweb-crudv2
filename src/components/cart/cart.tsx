@@ -1,6 +1,6 @@
 'use client';
 
-import { X, Plus, Minus, ShoppingCart } from 'lucide-react';
+import { X, Plus, Minus, ShoppingCart, MessageCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useCart } from '@/contexts/cart-context';
 import Image from 'next/image';
@@ -16,6 +16,20 @@ export function Cart() {
     totalItems, 
     totalPrice 
   } = useCart();
+
+  const generateWhatsAppMessage = () => {
+    const baseUrl = typeof window !== 'undefined' ? window.location.origin : 'https://www.truevintage.pe';
+    
+    const itemsText = items.map(item => {
+      const productUrl = `${baseUrl}/products/${item.sku}`;
+      return `• ${item.nombre_prenda} (SKU: ${item.sku}) - S/${item.precio.toFixed(2)}\n   ${productUrl}`;
+    }).join('\n\n');
+    
+    const message = `Hola, quisiera adquirir las siguientes prendas:\n\n${itemsText}\n\nTotal: S/${totalPrice.toFixed(2)}`;
+    return encodeURIComponent(message);
+  };
+
+  const whatsappLink = `https://wa.me/51940866278?text=${generateWhatsAppMessage()}`;
 
   if (!isOpen) return null;
 
@@ -124,25 +138,16 @@ export function Cart() {
                   </div>
                   <p className="mt-0.5 text-sm text-gray-500">Envío e impuestos calculados al finalizar la compra.</p>
                   <div className="mt-6">
-                    <Link
-                      href="/checkout"
-                      className="flex items-center justify-center rounded-md border border-transparent bg-primary px-6 py-3 text-base font-medium text-white shadow-sm hover:bg-primary/90"
+                    <a
+                      href={whatsappLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center justify-center rounded-md border border-transparent bg-green-600 px-6 py-3 text-base font-medium text-white shadow-sm hover:bg-green-700"
                       onClick={toggleCart}
                     >
-                      Finalizar compra
-                    </Link>
-                  </div>
-                  <div className="mt-4 flex justify-center text-center text-sm text-gray-500">
-                    <p>
-                      o{' '}
-                      <button
-                        type="button"
-                        className="font-medium text-primary hover:text-primary/80"
-                        onClick={toggleCart}
-                      >
-                        Continuar comprando
-                      </button>
-                    </p>
+                      <MessageCircle className="mr-2 h-5 w-5" />
+                      Comprar por WhatsApp
+                    </a>
                   </div>
                 </div>
               )}

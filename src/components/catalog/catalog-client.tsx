@@ -6,7 +6,7 @@ import { ProductList } from '@/components/product/product-list';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { ProductFilterPopover } from '@/components/product/product-filter-popover';
-import { ArrowUpDown, Sparkles } from 'lucide-react';
+import { ArrowDown, ArrowUp, ArrowUpDown, ChevronDown, Sparkles } from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
 import type { Categoria, Talla, Prenda } from '@/types';
 
@@ -31,6 +31,8 @@ export function CatalogClient({
   const [dropValue] = useState(initialDropValue);
   const [products, setProducts] = useState<Prenda[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [sortOption, setSortOption] = useState<string>('');
+  const [isSortOpen, setIsSortOpen] = useState(false);
 
   const toggleNewArrivals = () => {
     setShowNewArrivals(!showNewArrivals);
@@ -84,7 +86,7 @@ export function CatalogClient({
     };
   }, [category, size]);
 
-  // Apply filters
+  // Apply filters and sorting
   filteredProducts = useMemo(() => {
     let result = [...products];
     
@@ -105,6 +107,22 @@ export function CatalogClient({
         p.talla_nombre && sizesParams.includes(p.talla_nombre)
       );
     }
+
+    // Apply sorting
+    result = [...result].sort((a, b) => {
+      switch (sortOption) {
+        case 'price-asc':
+          return a.precio - b.precio;
+        case 'price-desc':
+          return b.precio - a.precio;
+        case 'size-asc':
+          return (a.talla_nombre || '').localeCompare(b.talla_nombre || '');
+        case 'size-desc':
+          return (b.talla_nombre || '').localeCompare(a.talla_nombre || '');
+        default:
+          return 0;
+      }
+    });
     
     return result;
   }, [products, showNewArrivals, dropValue, categoriesParams, sizesParams]);
@@ -124,10 +142,78 @@ export function CatalogClient({
             <Sparkles className="h-4 w-4" />
             Nuevos Ingresos
           </Button>
-          <Button variant="outline" size="sm" className="gap-2">
-            <ArrowUpDown className="h-4 w-4" />
-            Ordenar
-          </Button>
+          <div className="relative">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="gap-2"
+              onClick={() => setIsSortOpen(!isSortOpen)}
+            >
+              <ArrowUpDown className="h-4 w-4" />
+              Ordenar
+              <ChevronDown className={`h-4 w-4 transition-transform ${isSortOpen ? 'rotate-180' : ''}`} />
+            </Button>
+            {isSortOpen && (
+              <div className="absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white dark:bg-gray-800 ring-1 ring-black ring-opacity-5 z-50">
+                <div className="py-1" role="menu" aria-orientation="vertical">
+                  <button
+                    onClick={() => {
+                      setSortOption('price-asc');
+                      setIsSortOpen(false);
+                    }}
+                    className={`w-full text-left px-4 py-2 text-sm flex items-center gap-2 hover:bg-gray-100 dark:hover:bg-gray-700 ${sortOption === 'price-asc' ? 'bg-gray-100 dark:bg-gray-700' : ''}`}
+                    role="menuitem"
+                  >
+                    <ArrowUp className="h-4 w-4" />
+                    Precio: Menor a mayor
+                  </button>
+                  <button
+                    onClick={() => {
+                      setSortOption('price-desc');
+                      setIsSortOpen(false);
+                    }}
+                    className={`w-full text-left px-4 py-2 text-sm flex items-center gap-2 hover:bg-gray-100 dark:hover:bg-gray-700 ${sortOption === 'price-desc' ? 'bg-gray-100 dark:bg-gray-700' : ''}`}
+                    role="menuitem"
+                  >
+                    <ArrowDown className="h-4 w-4" />
+                    Precio: Mayor a menor
+                  </button>
+                  <button
+                    onClick={() => {
+                      setSortOption('size-asc');
+                      setIsSortOpen(false);
+                    }}
+                    className={`w-full text-left px-4 py-2 text-sm flex items-center gap-2 hover:bg-gray-100 dark:hover:bg-gray-700 ${sortOption === 'size-asc' ? 'bg-gray-100 dark:bg-gray-700' : ''}`}
+                    role="menuitem"
+                  >
+                    <ArrowUp className="h-4 w-4" />
+                    Talla: A-Z
+                  </button>
+                  <button
+                    onClick={() => {
+                      setSortOption('size-desc');
+                      setIsSortOpen(false);
+                    }}
+                    className={`w-full text-left px-4 py-2 text-sm flex items-center gap-2 hover:bg-gray-100 dark:hover:bg-gray-700 ${sortOption === 'size-desc' ? 'bg-gray-100 dark:bg-gray-700' : ''}`}
+                    role="menuitem"
+                  >
+                    <ArrowDown className="h-4 w-4" />
+                    Talla: Z-A
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+          {sortOption && (
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="text-xs text-muted-foreground"
+              onClick={() => setSortOption('')}
+            >
+              Limpiar
+            </Button>
+          )}
         </div>
       </div>
       
