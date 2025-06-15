@@ -706,5 +706,51 @@ export async function fetchAvailableSizes(): Promise<Talla[]> {
 interface ZodShapeIterable extends z.ZodObject<any, any, any, any, any> {
   shape: Record<string, z.ZodTypeAny>;
 }
-    
 
+export async function fetchAllProducts(): Promise<Prenda[]> {
+  try {
+    const result = await query(`
+      SELECT 
+        p.*,
+        c.nombre as categoria_nombre,
+        t.nombre as talla_nombre,
+        m.nombre as marca_nombre,
+        (
+          SELECT json_agg(
+            json_build_object(
+              'id', i.id,
+              'url', i.url,
+              'tipo', i.tipo
+            )
+          )
+          FROM imagenes i
+          WHERE i.prenda_id = p.id AND i.tipo = 'color'
+        ) as imagenes,
+        (
+          SELECT json_agg(
+            json_build_object(
+              'id', i.id,
+              'url', i.url,
+              'tipo', i.tipo
+            )
+          )
+          FROM imagenes i
+          WHERE i.prenda_id = p.id AND i.tipo = 'bw'
+        ) as imagenes_bw
+      FROM prendas p
+      LEFT JOIN categorias c ON p.categoria_id = c.id
+      LEFT JOIN tallas t ON p.talla_id = t.id
+      LEFT JOIN marcas m ON p.marca_id = m.id
+      ORDER BY p.id DESC
+    `);
+    
+    return result.rows.map((row: any) => ({
+      ...row,
+      imagenes: row.imagenes || [],
+      imagenes_bw: row.imagenes_bw || []
+    }));
+  } catch (error) {
+    console.error('Error al obtener todos los productos:', error);
+    return [];
+  }
+}

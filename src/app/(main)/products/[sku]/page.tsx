@@ -176,6 +176,21 @@ Enlace directo: ${productUrl}`
 }
 
 export async function generateStaticParams() {
-  // Opting out of static generation for now as we use dynamic headers for product URL
-  return [];
+  try {
+    // Importar dinámicamente para evitar problemas de dependencia circular
+    const { fetchAllProducts } = await import('@/app/actions/product-actions');
+    const productos = await fetchAllProducts();
+    
+    if (!productos || productos.length === 0) {
+      console.warn('No se encontraron productos para generar rutas estáticas');
+      return [];
+    }
+    
+    return productos.map((producto: { sku: string | number }) => ({
+      sku: producto.sku.toString()
+    }));
+  } catch (error) {
+    console.error('Error generando rutas estáticas de productos:', error);
+    return [];
+  }
 }
