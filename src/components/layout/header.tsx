@@ -1,27 +1,20 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import { Instagram, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { CartButton } from '@/components/cart/cart-button';
 import { AdminLoginDialog } from '@/components/auth/admin-login-dialog';
 
 const LogoIcon = () => (
-  <svg
-    width="28"
-    height="28"
-    viewBox="0 0 28 28"
-    fill="none"
-    xmlns="http://www.w3.org/2000/svg"
-    className="text-primary"
-  >
-    <circle cx="14" cy="14" r="13" stroke="currentColor" strokeWidth="2" />
-    <path
-      d="M10 10H18M14 10V20"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
+  <div className="relative w-28 h-10">
+    <Image
+      src="https://truevintageperu.com/vtg/logo.jpg"
+      alt="True Vintage Logo"
+      fill
+      className="object-contain"
+      priority
     />
-  </svg>
+  </div>
 );
 
 export function Header() {
