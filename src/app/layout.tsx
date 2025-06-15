@@ -4,7 +4,7 @@ import { ToastProvider } from '@/components/providers/toast-provider';
 
 export const metadata: Metadata = {
   title: 'True Vintage',
-  description: 'Gestion de prendas de True Vintage',
+  description: 'Tienda online de ropa vintage',
   icons: {
     icon: [
       { url: 'https://truevintageperu.com/vtg/logo_grande.jpg', type: 'image/jpg' },

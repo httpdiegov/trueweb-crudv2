@@ -128,8 +128,8 @@ export function ProductFilterPopover({
           Filtrar productos
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-80 p-4" align="start">
-        <div className="space-y-4">
+      <PopoverContent className="w-[calc(100vw-2rem)] max-w-md p-4 sm:p-6" align="start" sideOffset={16}>
+        <div className="space-y-4 max-h-[80vh] overflow-y-auto">
           <div>
             <h4 className="font-medium text-sm mb-2 text-foreground">Talla</h4>
             <div className="flex flex-wrap gap-2">
@@ -182,14 +182,25 @@ export function ProductFilterPopover({
             </div>
           </div>
           
-          <div className="flex justify-between items-center pt-2 mt-2 border-t">
-            <Button variant="ghost" size="sm" onClick={handleClearFilters} className="text-xs h-8 px-3 text-muted-foreground hover:text-destructive">
-              <XIcon className="mr-1 h-3 w-3" />
-              Limpiar filtros
-            </Button>
-            <Button size="sm" onClick={handleApplyFilters} className="text-xs h-8 px-4 bg-primary text-primary-foreground hover:bg-primary/90">
-              Aplicar filtros
-            </Button>
+          <div className="sticky bottom-0 left-0 right-0 bg-background border-t pt-4 -mx-4 px-4 pb-2 -mb-4">
+            <div className="flex justify-between items-center gap-2">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={handleClearFilters} 
+                className="text-xs h-10 flex-1 sm:flex-none sm:px-4 text-muted-foreground hover:text-destructive"
+              >
+                <XIcon className="mr-1 h-4 w-4" />
+                Limpiar
+              </Button>
+              <Button 
+                size="sm" 
+                onClick={handleApplyFilters} 
+                className="text-xs h-10 flex-1 sm:flex-none sm:px-6 bg-primary text-primary-foreground hover:bg-primary/90"
+              >
+                Aplicar filtros
+              </Button>
+            </div>
           </div>
         </div>
       </PopoverContent>

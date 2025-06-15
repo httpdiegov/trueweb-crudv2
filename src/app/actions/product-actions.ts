@@ -263,9 +263,17 @@ export async function fetchProducts(): Promise<Prenda[]> {
   }
 }
 
-export async function fetchProductById(sku: string): Promise<Prenda | undefined> {
+export async function fetchProductById(id: string | number): Promise<Prenda | undefined> {
+  console.log('fetchProductById called with ID:', id); // Debug log
   try {
-    // In fetchProductById function in product-actions.ts
+    // Convertir el ID a número si es una cadena
+    const productId = typeof id === 'string' ? parseInt(id, 10) : id;
+    
+    if (isNaN(productId)) {
+      console.error('ID de producto no válido:', id);
+      return undefined;
+    }
+
     const productSql = `
     SELECT DISTINCT
       p.id, p.drop_name, p.sku, p.nombre_prenda, p.precio,
@@ -278,13 +286,19 @@ export async function fetchProductById(sku: string): Promise<Prenda | undefined>
     LEFT JOIN categorias c ON p.categoria_id = c.id
     LEFT JOIN marcas m ON p.marca_id = m.id
     LEFT JOIN tallas t ON p.talla_id = t.id
-    WHERE p.sku = ?
+    WHERE p.id = ?
   `;
-    const rows = await query(productSql, [sku]) as any[];
+  console.log('SQL Query:', productSql.replace(/\s+/g, ' ').trim()); // Debug log
+    const rows = await query(productSql, [productId]) as any[];
+    console.log('Query result rows:', rows); // Debug log
+    
     if (rows.length === 0) {
+      console.log('No se encontró ningún producto con el ID:', productId); // Debug log
       return undefined;
     }
+    
     const row = rows[0];
+    console.log('Product row found:', row); // Debug log
 
     const imagesSql = `
       SELECT id, prenda_id, url
@@ -361,7 +375,7 @@ export async function fetchProductById(sku: string): Promise<Prenda | undefined>
     return prenda;
 
   } catch (error) {
-    console.error(`Error fetching product by sku ${sku}:`, error);
+    console.error(`Error fetching product with ID ${id}:`, error);
     return undefined;
   }
 }

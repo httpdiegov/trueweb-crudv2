@@ -19,7 +19,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import type { Prenda, Categoria, Talla, Imagen, Marca } from '@/types';
 import { useRouter } from 'next/navigation';
 import { Loader2, Trash2, ImagePlus, ArrowUp, ArrowDown, X, Film } from 'lucide-react';
-import { useState, useRef, useEffect, useCallback } from 'react';
+import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { fetchAvailableBrands, fetchAvailableCategories, fetchAvailableSizes } from '@/app/actions/product-actions';
@@ -59,18 +59,19 @@ export function ProductForm({ initialData, onSubmitAction, isEditing }: ProductF
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const colorImageFilesInputRef = useRef<HTMLInputElement>(null);
-  const bwImageFilesInputRef = useRef<HTMLInputElement>(null); // Plural para BW
+  const bwImageFilesInputRef = useRef<HTMLInputElement>(null);
   
+  // State for dropdown data
   const [availableCategories, setAvailableCategories] = useState<Categoria[]>([]);
   const [availableSizes, setAvailableSizes] = useState<Talla[]>([]);
   const [availableBrands, setAvailableBrands] = useState<Marca[]>([]);
   const [isLoadingDropdowns, setIsLoadingDropdowns] = useState<boolean>(true);
   
-  const [currentImages, setCurrentImages] = useState<Imagen[]>(initialData?.imagenes || []);
-  const [currentBwImages, setCurrentBwImages] = useState<Imagen[]>(initialData?.imagenes_bw || []); // Plural para BW
-  
+  // State for images
+  const [currentImages, setCurrentImages] = useState<Imagen[]>([]);
+  const [currentBwImages, setCurrentBwImages] = useState<Imagen[]>([]);
   const [newColorImageFiles, setNewColorImageFiles] = useState<ImageFileWithPreview[]>([]);
-  const [newBwImageFiles, setNewBwImageFiles] = useState<ImageFileWithPreview[]>([]); // Plural para BW
+  const [newBwImageFiles, setNewBwImageFiles] = useState<ImageFileWithPreview[]>([]);
 
   useEffect(() => {
     async function loadDropdownData() {
@@ -120,25 +121,55 @@ export function ProductForm({ initialData, onSubmitAction, isEditing }: ProductF
         drop_name: '',
       };
 
+  // Initialize form with react-hook-form
   const form = useForm<ProductFormValues>({
     resolver: zodResolver(productFormSchemaClient),
-    defaultValues,
+    defaultValues: {
+      nombre_prenda: initialData?.nombre_prenda || '',
+      sku: initialData?.sku || '',
+      precio: initialData?.precio || 0,
+      stock: initialData?.stock || 0,
+      categoria_id: initialData?.categoria_id || 0,
+      talla_id: initialData?.talla_id || 0,
+      caracteristicas: initialData?.caracteristicas || '',
+      medidas: initialData?.medidas || '',
+      desc_completa: initialData?.desc_completa || '',
+      drop_name: initialData?.drop_name || '',
+      marca_id: initialData?.marca_id || null,
+    },
     mode: "onChange",
   });
   
+  // Get form state
+  const { isDirty } = form.formState;
+
+  // Initialize form and images when component mounts or initialData changes
   useEffect(() => {
     if (initialData) {
+      // Reset form with initial data
       form.reset({
-        ...defaultValues,
-        categoria_id: initialData.categoria_id,
-        talla_id: initialData.talla_id,
+        nombre_prenda: initialData.nombre_prenda || '',
+        sku: initialData.sku || '',
+        precio: initialData.precio || 0,
+        stock: initialData.stock || 0,
+        categoria_id: initialData.categoria_id || 0,
+        talla_id: initialData.talla_id || 0,
+        caracteristicas: initialData.caracteristicas || '',
+        medidas: initialData.medidas || '',
+        desc_completa: initialData.desc_completa || '',
+        drop_name: initialData.drop_name || '',
+        marca_id: initialData.marca_id || null,
       });
+      
+      // Set current images from initial data
       setCurrentImages(initialData.imagenes || []);
-      setCurrentBwImages(initialData.imagenes_bw || []); // Plural
-      setNewColorImageFiles([]); 
-      setNewBwImageFiles([]); // Plural
+      setCurrentBwImages(initialData.imagenes_bw || []);
+      
+      // Clear any new files that might have been added
+      setNewColorImageFiles([]);
+      setNewBwImageFiles([]);
     }
-  }, [initialData, form, defaultValues]);
+  }, [form, initialData]); // Only run when these dependencies change
 
   // Warn user before leaving page with unsaved changes
   useEffect(() => {
@@ -476,32 +507,69 @@ export function ProductForm({ initialData, onSubmitAction, isEditing }: ProductF
               )}
             />
 
-            <FormField
-              control={form.control}
-              name="caracteristicas"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Características (Opcional)</FormLabel>
-                  <FormControl>
-                    <Textarea placeholder="Ej: Tela ligera, estampado floral, corte A." {...field} value={field.value ?? ''} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="medidas"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Medidas (Opcional)</FormLabel>
-                  <FormControl>
-                    <Textarea placeholder="Ej: Largo: 90cm, Busto: 85cm (Talla M)" {...field} value={field.value ?? ''} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <FormField
+                control={form.control}
+                name="caracteristicas"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Características (Opcional)</FormLabel>
+                    <FormControl>
+                      <Textarea 
+                        placeholder="Ej: Tela ligera, estampado floral, corte A." 
+                        className="min-h-[120px]"
+                        {...field} 
+                        value={field.value ?? ''} 
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <div className="bg-muted/50 p-4 rounded-md border border-border">
+                <h4 className="text-sm font-medium mb-2">Ejemplo de formato:</h4>
+                <div className="text-sm text-muted-foreground space-y-1">
+                  <p>• Bolsillos con cierre</p>
+                  <p>• Umbro logos bordados</p>
+                  <p>• Corte regular fit</p>
+                  <p>• Cuello redondo</p>
+                </div>
+              </div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <FormField
+                control={form.control}
+                name="medidas"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Medidas (Opcional)</FormLabel>
+                    <FormControl>
+                      <Textarea 
+                        placeholder="Ej: Largo: 90cm, Busto: 85cm (Talla M)" 
+                        className="min-h-[120px]"
+                        {...field} 
+                        value={field.value ?? ''} 
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <div className="bg-muted/50 p-4 rounded-md border border-border">
+                <h4 className="text-sm font-medium mb-2">Ejemplo de formato:</h4>
+                <div className="text-sm text-muted-foreground space-y-1">
+                  <p>• Ancho (Axila): 51 cm</p>
+                  <p>• Ancho de manga: 18 cm</p>
+                  <p>• Largo de manga: 73 cm</p>
+                  <p>• Largo: 64 cm</p>
+                  <p>• Cintura: 38 hasta 58 cm</p>
+                  <p>• Tiro: 38 cm</p>
+                  <p>• Muslo: 40 cm</p>
+                  <p>• Largo: 107 cm</p>
+                  <p>• Basta: 23 cm</p>
+                </div>
+              </div>
+            </div>
             <FormField
               control={form.control}
               name="desc_completa"
