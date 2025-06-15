@@ -13,21 +13,37 @@ import { cn } from '@/lib/utils';
 interface ProductFilterPopoverProps {
   availableCategories: Categoria[];
   availableSizes: Talla[];
+  initialCategory?: string;
+  initialSize?: string;
 }
 
-export function ProductFilterPopover({ availableCategories, availableSizes }: ProductFilterPopoverProps) {
+export function ProductFilterPopover({ 
+  availableCategories, 
+  availableSizes,
+  initialCategory,
+  initialSize 
+}: ProductFilterPopoverProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [isOpen, setIsOpen] = useState(false);
 
-  const getInitialArrayFromParams = (paramName: string): string[] => {
+  const getInitialArrayFromParams = (paramName: string, initialValue?: string): string[] => {
+    // Primero verificar si hay un valor inicial proporcionado
+    if (initialValue) {
+      return initialValue.split(',').filter(Boolean);
+    }
+    // Si no hay valor inicial, verificar los parámetros de la URL
     const paramValue = searchParams.get(paramName);
     return paramValue ? paramValue.split(',').filter(Boolean) : [];
   };
 
-  const [selectedCats, setSelectedCats] = useState<string[]>(() => getInitialArrayFromParams('category'));
-  const [selectedUiSizes, setSelectedUiSizes] = useState<string[]>(() => getInitialArrayFromParams('size')); // Renamed to avoid conflict
+  const [selectedCats, setSelectedCats] = useState<string[]>(
+    () => getInitialArrayFromParams('category', initialCategory)
+  );
+  const [selectedUiSizes, setSelectedUiSizes] = useState<string[]>(
+    () => getInitialArrayFromParams('size', initialSize)
+  );
 
   const updateUrlParams = useCallback(() => {
     const params = new URLSearchParams(searchParams.toString());
@@ -47,10 +63,29 @@ export function ProductFilterPopover({ availableCategories, availableSizes }: Pr
     setIsOpen(false); 
   }, [selectedCats, selectedUiSizes, router, pathname, searchParams]);
 
+  // Efecto para sincronizar con los parámetros iniciales cuando cambian
   useEffect(() => {
-    setSelectedCats(getInitialArrayFromParams('category'));
-    setSelectedUiSizes(getInitialArrayFromParams('size'));
-  }, [searchParams]);
+    if (initialCategory !== undefined) {
+      setSelectedCats(getInitialArrayFromParams('category', initialCategory));
+    }
+  }, [initialCategory]);
+
+  useEffect(() => {
+    if (initialSize !== undefined) {
+      setSelectedUiSizes(getInitialArrayFromParams('size', initialSize));
+    }
+  }, [initialSize]);
+
+  // Efecto para sincronizar con los cambios en la URL
+  useEffect(() => {
+    // Solo actualizar desde los parámetros de la URL si no hay valores iniciales
+    if (initialCategory === undefined) {
+      setSelectedCats(getInitialArrayFromParams('category'));
+    }
+    if (initialSize === undefined) {
+      setSelectedUiSizes(getInitialArrayFromParams('size'));
+    }
+  }, [searchParams, initialCategory, initialSize]);
 
   const handleCategoryToggle = (categoryName: string) => {
     setSelectedCats(prev => {

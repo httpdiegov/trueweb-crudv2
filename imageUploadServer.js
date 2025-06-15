@@ -21,7 +21,7 @@ const ftpConfig = {
 };
 
 // --- CORS Configuration ---
-const allowedOrigins = (process.env.CORS_ALLOWED_ORIGINS || 'http://localhost:9002,https://www.truevintage.pe').split(',');
+const allowedOrigins = (process.env.CORS_ALLOWED_ORIGINS || 'http://localhost:9002,https://truevintageperu.com').split(',');
 const corsOptions = {
   origin: function (origin, callback) {
     if (!origin || allowedOrigins.indexOf(origin) !== -1 || allowedOrigins.includes('*')) {
@@ -147,7 +147,7 @@ app.post('/api/process-image-upload', upload.single('file'), async (req, res) =>
     await client.uploadFrom(localFilePath, remoteFilePath);
     console.log(`FTP: Subida exitosa.`);
 
-    const baseImageUrl = process.env.BASE_IMAGE_URL || 'https://www.truevintage.pe/vtg'; // Usar variable de entorno
+    const baseImageUrl = process.env.BASE_IMAGE_URL || 'https://truevintageperu.com/vtg'; // Usar variable de entorno
     const imageUrl = `${baseImageUrl}/${urlPathSegment}`;
     
     res.status(200).json({ url: imageUrl, generatedFileName, imageType, imageIndex });
@@ -177,7 +177,7 @@ app.listen(port, () => {
     console.warn("ADVERTENCIA: Las variables de entorno FTP (FTP_HOST, FTP_USER, FTP_PASSWORD) no están completamente configuradas.");
   }
   console.log(`CORS permitido para: ${allowedOrigins.join(', ')}`);
-  console.log(`Directorio base para imágenes en FTP: ${process.env.FTP_BASE_IMAGE_DIR || '/domains/truevintage.pe/public_html/vtg'}`);
-  console.log(`URL base para imágenes: ${process.env.BASE_IMAGE_URL || 'https://www.truevintage.pe/vtg'}`);
+  console.log(`Directorio base para imágenes en FTP: ${process.env.FTP_BASE_IMAGE_DIR || '/domains/truevintageperu.com/public_html/vtg'}`);
+  console.log(`URL base para imágenes: ${process.env.BASE_IMAGE_URL || 'https://truevintageperu.com/vtg'}`);
 });
     

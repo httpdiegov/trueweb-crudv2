@@ -43,6 +43,7 @@ export default function CatalogContent({ category, size }: CatalogContentProps) 
     return <div>Loading...</div>; // Or your preferred loading state
   }
 
+  // Pasar los parámetros de búsqueda al componente CatalogClient
   return (
     <CatalogClient
       initialCategories={categories}

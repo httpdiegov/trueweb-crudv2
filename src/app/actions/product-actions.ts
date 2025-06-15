@@ -189,7 +189,7 @@ export async function fetchProducts(): Promise<Prenda[]> {
         const bwImageNumber = imageUrl.match(/(\d+)\.(jpg|jpeg|png|webp|gif)$/i)?.[1] || '01';
         
         // Crear la nueva URL en el formato correcto
-        image.url = `https://www.truevintage.pe/vtg/11.06.25/${productBase}/BW/${productCode}/${productCode}-bw${bwImageNumber}.png`;
+        image.url = `https://truevintageperu.com/vtg/11.06.25/${productBase}/BW/${productCode}/${productCode}-bw${bwImageNumber}.png`;
       }
       
       acc[image.prenda_id].push(image);
@@ -205,7 +205,7 @@ export async function fetchProducts(): Promise<Prenda[]> {
         const defaultBwImage = {
           id: 1000000 + product.id, // ID alto para evitar colisiones
           prenda_id: product.id,
-          url: `https://www.truevintage.pe/vtg/11.06.25/${productBase}/BW/${productCode}/${productCode}-bw01.png`
+          url: `https://truevintageperu.com/vtg/11.06.25/${productBase}/BW/${productCode}/${productCode}-bw01.png`
         };
         
         allBwImages.push(defaultBwImage);
@@ -318,7 +318,7 @@ export async function fetchProductById(sku: string): Promise<Prenda | undefined>
       const productBase = productCode.split('-')[0]; // Ej: TRK
       
       // Crear la ruta base para las imágenes BW
-      const basePath = `https://www.truevintage.pe/vtg/11.06.25/${productBase}/BW/${productCode}`;
+      const basePath = `https://truevintageperu.com/vtg/11.06.25/${productBase}/BW/${productCode}`;
       
       // Crear las URLs de las imágenes BW
       finalBwImages = Array.from({ length: 3 }, (_, i) => ({
