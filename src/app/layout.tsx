@@ -50,8 +50,8 @@ export default function RootLayout({
             __html: `
               (function() {
                 try {
-                  const theme = localStorage.getItem('theme-preference') || 
-                                (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+                  // Always use light theme by default
+                  const theme = localStorage.getItem('theme-preference') || 'light';
                   document.documentElement.classList.add(theme);
                   document.body.classList.add('theme-loaded');
                 } catch (e) {}

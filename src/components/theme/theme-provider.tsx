@@ -62,9 +62,8 @@ export function ThemeProvider({
   useEffect(() => {
     setMounted(true);
     
-    // Check for system preference if no theme is set
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    const initialTheme = getStoredTheme(storageKey, prefersDark ? 'dark' : 'light');
+    // Always use light theme by default, regardless of system preference
+    const initialTheme = getStoredTheme(storageKey, 'light');
     
     setThemeState(initialTheme);
     
@@ -72,17 +71,9 @@ export function ThemeProvider({
     document.documentElement.classList.add(initialTheme);
     document.body.classList.add('theme-loaded');
     
-    // Listen for system theme changes
-    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-    const handleChange = () => {
-      const newTheme = mediaQuery.matches ? 'dark' : 'light';
-      setThemeState(newTheme);
-    };
-    
-    mediaQuery.addEventListener('change', handleChange);
+    // No need to listen for system theme changes
     
     return () => {
-      mediaQuery.removeEventListener('change', handleChange);
       document.body.classList.remove('theme-loaded');
     };
   }, [storageKey]);
