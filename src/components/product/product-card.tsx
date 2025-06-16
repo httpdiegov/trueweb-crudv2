@@ -61,17 +61,26 @@ export function ProductCard({ prenda }: ProductCardProps) {
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
-      <div className="relative w-full overflow-hidden bg-muted aspect-square">
+      <div className="relative w-full overflow-hidden bg-muted aspect-square group">
         <Image
           src={currentImageUrl}
           alt={prenda.nombre_prenda}
           fill
           sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, (max-width: 1280px) 20vw, 16vw"
-          className="object-cover transition-opacity duration-300"
+          className={`object-cover transition-opacity duration-300 ${
+            prenda.stock === 0 ? 'opacity-70' : ''
+          }`}
           data-ai-hint={imageAiHint}
           priority={prenda.id < 7 && currentImageUrl === initialImageUrl} 
           key={currentImageUrl}
         />
+        {prenda.stock === 0 && (
+          <div className="absolute inset-0 flex items-center justify-center bg-black/40">
+            <div className="bg-red-600 text-white text-xs sm:text-sm font-bold uppercase tracking-wider px-3 py-1.5 transform -rotate-12 scale-110">
+              SOLD OUT
+            </div>
+          </div>
+        )}
       </div>
       <div className="mt-2 text-center">
         <h3 className="text-xs sm:text-sm font-medium text-foreground truncate group-hover:underline">

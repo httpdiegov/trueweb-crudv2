@@ -129,38 +129,59 @@ Enlace directo: ${productUrl}`
               </div>
             </div>
             
-            <div className="mt-8 flex flex-col gap-3 md:flex-row">
-              <AddToCartWrapper product={{
-                id: prenda.id,
-                sku: prenda.sku,
-                nombre_prenda: prenda.nombre_prenda,
-                precio: prenda.precio,
-                imagenes: prenda.imagenes || [],
-                imagenes_bw: prenda.imagenes_bw || []
-              }} className="w-full md:w-auto" />
-              <Button size="lg" variant="outline" asChild className="w-full md:w-auto border-green-600 text-green-700 hover:bg-green-50 hover:text-green-800">
-                <Link href={whatsappLink} target="_blank" rel="noopener noreferrer">
-                  <MessageCircle className="mr-2 h-5 w-5" />
-                  Comprar por WhatsApp
-                </Link>
-              </Button>
-            </div>
+            {prenda.stock > 0 ? (
+              <>
+                <div className="mt-8 flex flex-col gap-3 md:flex-row">
+                  <AddToCartWrapper product={{
+                    id: prenda.id,
+                    sku: prenda.sku,
+                    nombre_prenda: prenda.nombre_prenda,
+                    precio: prenda.precio,
+                    imagenes: prenda.imagenes || [],
+                    imagenes_bw: prenda.imagenes_bw || []
+                  }} className="w-full md:w-auto" />
+                  <Button size="lg" variant="outline" asChild className="w-full md:w-auto border-green-600 text-green-700 hover:bg-green-50 hover:text-green-800">
+                    <Link href={whatsappLink} target="_blank" rel="noopener noreferrer">
+                      <MessageCircle className="mr-2 h-5 w-5" />
+                      Comprar por WhatsApp
+                    </Link>
+                  </Button>
+                </div>
 
-            <div className="mt-6 text-xs text-muted-foreground text-center md:text-left">
-              <p>
-                ¿Sin WhatsApp? Envíanos foto de la prenda en Instagram{' '}
-                <Link
-                  href="https://www.instagram.com/truevintage.pe"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-primary hover:underline font-medium inline-flex items-center gap-1"
-                >
-                  <Instagram className="h-3 w-3" />
-                  @truevintage.pe
-                </Link>{' '}
-                o al +51 940866278.
-              </p>
-            </div>
+                <div className="mt-6 text-xs text-muted-foreground text-center md:text-left">
+                  <p>
+                    ¿Sin WhatsApp? Envíanos foto de la prenda en Instagram{' '}
+                    <Link
+                      href="https://www.instagram.com/truevintage.pe"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-primary hover:underline font-medium inline-flex items-center gap-1"
+                    >
+                      <Instagram className="h-3 w-3" />
+                      @truevintage.pe
+                    </Link>{' '}
+                    o al +51 940866278.
+                  </p>
+                </div>
+              </>
+            ) : (
+              <div className="mt-8 p-4 bg-red-50 border border-red-200 rounded-md text-center">
+                <p className="text-red-700 font-medium">Esta prenda está agotada</p>
+                <p className="text-sm text-red-600 mt-1">Entérate de lo nuevo en nuestro Instagram</p>
+                <div className="mt-3">
+                  <Button variant="outline" size="sm" asChild>
+                    <Link 
+                      href="https://www.instagram.com/truevintage.pe" 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-1 mx-auto"
+                    >
+                      <Instagram className="h-4 w-4" /> @truevintage.pe
+                    </Link>
+                  </Button>
+                </div>
+              </div>
+            )}
             
             <Link href="/" className="text-primary hover:underline mt-8 text-center md:text-left text-sm">
               &larr; Volver al catálogo
