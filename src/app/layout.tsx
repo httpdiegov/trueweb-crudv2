@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import { ToastProvider } from '@/components/providers/toast-provider';
+import { ThemeProvider } from '@/components/theme/theme-provider';
 
 export const metadata: Metadata = {
   title: 'True Vintage',
@@ -11,6 +12,10 @@ export const metadata: Metadata = {
     ],
   },
 };
+
+// Force dynamic rendering to prevent caching issues
+// This ensures the theme is always up-to-date
+export const dynamic = 'force-dynamic';
 
 export default function RootLayout({
   children,
@@ -25,11 +30,29 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=Belleza&display=swap" rel="stylesheet" />
         <link href="https://fonts.googleapis.com/css2?family=Alegreya:ital,wght@0,400..900;1,400..900&display=swap" rel="stylesheet" />
+        
+        {/* Add initial theme script to prevent flash of incorrect theme */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                try {
+                  const theme = localStorage.getItem('theme-preference') || 
+                                (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+                  document.documentElement.classList.add(theme);
+                  document.body.classList.add('theme-loaded');
+                } catch (e) {}
+              })();
+            `,
+          }}
+        />
       </head>
-      <body className="font-body antialiased min-h-screen flex flex-col">
-        <ToastProvider>
-          {children}
-        </ToastProvider>
+      <body className="font-body antialiased min-h-screen flex flex-col bg-background text-foreground transition-colors duration-200">
+        <ThemeProvider>
+          <ToastProvider>
+            {children}
+          </ToastProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

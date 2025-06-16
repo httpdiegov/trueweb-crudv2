@@ -4,6 +4,7 @@ import { Instagram, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { CartButton } from '@/components/cart/cart-button';
 import { AdminLoginDialog } from '@/components/auth/admin-login-dialog';
+import { ThemeToggle } from '@/components/theme/theme-toggle';
 
 const LogoIcon = () => (
   <div className="relative w-28 h-10">
@@ -34,7 +35,8 @@ export function Header() {
             <Search className="h-5 w-5" />
           </Button>
           <CartButton />
-           {/* Botón de administrador con autenticación */}
+          <ThemeToggle />
+          {/* Botón de administrador con autenticación */}
           <AdminLoginDialog />
         </nav>
       </div>

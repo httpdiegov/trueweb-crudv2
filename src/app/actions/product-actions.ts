@@ -536,7 +536,7 @@ export async function updateProduct(id: number, formData: FormData) {
     const sqlPrenda = `
       UPDATE prendas SET
       drop_name = ?, sku = ?, nombre_prenda = ?, precio = ?, caracteristicas = ?, medidas = ?,
-      desc_completa = ?, stock = ?, categoria_id = ?, talla_id = ?, marca_id = ?
+      desc_completa = ?, stock = ?, categoria_id = ?, marca_id = ?, talla_id = ?
       WHERE id = ?
     `;
     const paramsPrenda = [
@@ -710,46 +710,83 @@ interface ZodShapeIterable extends z.ZodObject<any, any, any, any, any> {
 
 export async function fetchAllProducts(): Promise<Prenda[]> {
   try {
-    const result = await query(`
-      SELECT 
-        p.*,
-        c.nombre as categoria_nombre,
-        t.nombre as talla_nombre,
-        m.nombre as marca_nombre,
-        (
-          SELECT json_agg(
-            json_build_object(
-              'id', i.id,
-              'url', i.url,
-              'tipo', i.tipo
-            )
-          )
-          FROM imagenes i
-          WHERE i.prenda_id = p.id AND i.tipo = 'color'
-        ) as imagenes,
-        (
-          SELECT json_agg(
-            json_build_object(
-              'id', i.id,
-              'url', i.url,
-              'tipo', i.tipo
-            )
-          )
-          FROM imagenes i
-          WHERE i.prenda_id = p.id AND i.tipo = 'bw'
-        ) as imagenes_bw
+    // First, fetch all products with their basic information
+    const productsSql = `
+      SELECT DISTINCT
+        p.id, p.drop_name, p.sku, p.nombre_prenda, p.precio,
+        p.caracteristicas, p.medidas, p.desc_completa, p.stock,
+        p.categoria_id, c.nom_categoria AS categoria_nombre, c.prefijo AS categoria_prefijo,
+        p.marca_id, m.nombre_marca AS marca_nombre,
+        p.talla_id, t.nom_talla AS talla_nombre,
+        p.created_at, p.updated_at
       FROM prendas p
       LEFT JOIN categorias c ON p.categoria_id = c.id
-      LEFT JOIN tallas t ON p.talla_id = t.id
       LEFT JOIN marcas m ON p.marca_id = m.id
+      LEFT JOIN tallas t ON p.talla_id = t.id
       ORDER BY p.id DESC
-    `);
+    `;
     
-    return result.rows.map((row: any) => ({
-      ...row,
-      imagenes: row.imagenes || [],
-      imagenes_bw: row.imagenes_bw || []
-    }));
+    const productRows = await query(productsSql) as any[];
+
+    if (productRows.length === 0) {
+      return [];
+    }
+
+
+    // Get all product IDs for batch image fetching
+    const productIds = productRows.map(p => p.id).filter((id): id is number => id != null);
+
+    // Fetch all color images for these products
+    const placeholders = productIds.map(() => '?').join(',');
+    const imagesSql = `
+      SELECT id, prenda_id, url, 'color' as tipo
+      FROM imagenes
+      WHERE prenda_id IN (${placeholders})
+      ORDER BY prenda_id, id
+    `;
+    
+    // Fetch all BW images for these products
+    const imagesBwSql = `
+      SELECT id, prenda_id, url, 'bw' as tipo
+      FROM imagenesBW
+      WHERE prenda_id IN (${placeholders})
+      ORDER BY prenda_id, id
+    `;
+
+    // Execute queries in parallel
+    const [colorImages, bwImages] = await Promise.all([
+      query(imagesSql, productIds) as Promise<Imagen[]>,
+      query(imagesBwSql, productIds) as Promise<Imagen[]>
+    ]);
+
+    // Group images by product_id for easier lookup
+    const imagesByProductId = new Map<number, { imagenes: Imagen[], imagenes_bw: Imagen[] }>();
+    
+    // Process color images
+    colorImages.forEach(img => {
+      if (!imagesByProductId.has(img.prenda_id)) {
+        imagesByProductId.set(img.prenda_id, { imagenes: [], imagenes_bw: [] });
+      }
+      imagesByProductId.get(img.prenda_id)?.imagenes.push(img);
+    });
+
+    // Process BW images
+    bwImages.forEach(img => {
+      if (!imagesByProductId.has(img.prenda_id)) {
+        imagesByProductId.set(img.prenda_id, { imagenes: [], imagenes_bw: [] });
+      }
+      imagesByProductId.get(img.prenda_id)?.imagenes_bw.push(img);
+    });
+
+    // Combine product data with images
+    return productRows.map(product => {
+      const images = imagesByProductId.get(product.id) || { imagenes: [], imagenes_bw: [] };
+      return {
+        ...product,
+        imagenes: sortProductImages(images.imagenes),
+        imagenes_bw: images.imagenes_bw || []
+      };
+    });
   } catch (error) {
     console.error('Error al obtener todos los productos:', error);
     return [];
