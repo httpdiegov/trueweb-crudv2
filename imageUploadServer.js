@@ -118,7 +118,7 @@ app.post('/api/process-image-upload', upload.single('file'), async (req, res) =>
   }
   remoteDirParts.push(sku.trim());
 
-  const ftpBaseImageDir = process.env.FTP_BASE_IMAGE_DIR || '/domains/truevintage.pe/public_html/vtg'; // Usar variable de entorno si existe
+  const ftpBaseImageDir = process.env.FTP_BASE_IMAGE_DIR || '/domains/truevintageperu.com/public_html/vtg'; // Usar variable de entorno si existe
 
   // Agregar "BW" al directorio si el tipo de imagen es "bw"
   if (imageType === 'bw') {

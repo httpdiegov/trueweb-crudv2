@@ -180,16 +180,17 @@ export async function fetchProducts(): Promise<Prenda[]> {
       if (!acc[image.prenda_id]) {
         acc[image.prenda_id] = [];
       }
-      // Asegurarse de que las imágenes BW sigan el formato correcto
-      let imageUrl = image.url;
-      const productCode = productRows.find(p => p.id === image.prenda_id)?.sku;
       
-      if (productCode) {
-        const productBase = productCode.split('-')[0];
-        const bwImageNumber = imageUrl.match(/(\d+)\.(jpg|jpeg|png|webp|gif)$/i)?.[1] || '01';
+      const product = productRows.find(p => p.id === image.prenda_id);
+      
+      if (product?.sku && product?.drop_name) {
+        const productBase = product.sku.split('-')[0];
+        const bwImageNumber = image.url.match(/(\d+)\.(jpg|jpeg|png|webp|gif)$/i)?.[1] || '01';
         
-        // Crear la nueva URL en el formato correcto
-        image.url = `https://truevintageperu.com/vtg/11.06.25/${productBase}/BW/${productCode}/${productCode}-bw${bwImageNumber}.png`;
+        // Crear la nueva URL en el formato correcto solo para imágenes BW
+        if (bwImageNumber) {
+          image.url = `https://truevintageperu.com/vtg/${product.drop_name}/${productBase}/BW/${product.sku}/${product.sku}-bw${bwImageNumber}.png`;
+        }
       }
       
       acc[image.prenda_id].push(image);
@@ -205,7 +206,7 @@ export async function fetchProducts(): Promise<Prenda[]> {
         const defaultBwImage = {
           id: 1000000 + product.id, // ID alto para evitar colisiones
           prenda_id: product.id,
-          url: `https://truevintageperu.com/vtg/11.06.25/${productBase}/BW/${productCode}/${productCode}-bw01.png`
+          url: `https://truevintageperu.com/vtg/${product.drop_name}/${productBase}/BW/${productCode}/${productCode}-bw01.png`
         };
         
         allBwImages.push(defaultBwImage);
@@ -333,7 +334,7 @@ export async function fetchProductById(id: string | number): Promise<Prenda | un
       const productBase = productCode.split('-')[0]; // Ej: TRK
       
       // Crear la ruta base para las imágenes BW
-      const basePath = `https://truevintageperu.com/vtg/11.06.25/${productBase}/BW/${productCode}`;
+      const basePath = `https://truevintageperu.com/vtg/${row.drop_name}/${productBase}/BW/${productCode}`;
       
       // Crear las URLs de las imágenes BW
       finalBwImages = Array.from({ length: 3 }, (_, i) => ({

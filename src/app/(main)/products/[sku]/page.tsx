@@ -15,14 +15,14 @@ import type { Imagen } from '@/types';
 
 
 export default async function ProductDetailPage({
-  params
+  params,
 }: {
   params: { sku: string }
 }) {
   try {
-    console.log('Iniciando carga de producto con SKU:', params.sku);
-    // Obtenemos el sku de los parámetros de la ruta
-    const { sku } = params; // No necesitamos await ya que params es síncrono
+    // Destructure params asynchronously
+    const { sku } = await params;
+    console.log('Iniciando carga de producto con SKU:', sku);
     
     console.log('SKU extraído:', sku);
     if (!sku) {
