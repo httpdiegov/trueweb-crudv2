@@ -449,7 +449,7 @@ export function ProductForm({ initialData, onSubmitAction, isEditing }: ProductF
                       </FormControl>
                       <SelectContent>
                         {isLoadingDropdowns ? (
-                          <SelectItem value="loading" disabled>Cargando prendas...</SelectItem>
+                           <SelectItem value="loading" disabled>Cargando...</SelectItem>
                          ) : (
                           availableSizes.map(talla => (
                             <SelectItem key={talla.id} value={talla.id.toString()}>{talla.nom_talla}</SelectItem>
