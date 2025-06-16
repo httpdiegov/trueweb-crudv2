@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 
 // Contraseña de administrador (en producción, usa variables de entorno)
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin123';
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
 
 export async function POST(request: Request) {
   try {
