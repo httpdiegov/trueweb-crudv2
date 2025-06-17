@@ -13,61 +13,61 @@ interface ProductCardProps {
 export function ProductCard({ prenda }: ProductCardProps) {
   const placeholderUrl = `https://placehold.co/400x400.png`;
 
-  // Helper function to normalize image URLs (in case some slip through)
-  const normalizeImageUrl = (url: string | undefined): string => {
-    if (!url) return placeholderUrl;
+  // Simple URL validation and cleanup
+  const cleanImageUrl = (url: string | undefined): string | null => {
+    if (!url) return null;
     
-    // Only normalize if the URL contains -bw followed by a single digit
-    // and not already followed by another digit (to avoid double-normalization)
-    return url.replace(/(-bw)(\d)(?=\D|$)/i, (match, prefix, num) => {
-      return `${prefix}0${num}`;
-    });
-  };
-
-  const determineInitialImageUrl = (): string => {
+    // Remove any whitespace and normalize the URL
+    const cleanUrl = url.trim();
+    
+    // Basic URL validation
     try {
-      // Try to use the first BW image if available
-      if (prenda.imagenes_bw && prenda.imagenes_bw.length > 0 && prenda.imagenes_bw[0]?.url) {
-        const bwUrl = normalizeImageUrl(prenda.imagenes_bw[0].url);
-        console.log('Using BW image:', bwUrl);
-        return bwUrl;
-      }
-      
-      // Fall back to color images if no BW images
-      if (prenda.imagenes && prenda.imagenes.length > 0 && prenda.imagenes[0]?.url) {
-        const colorUrl = prenda.imagenes[0].url;
-        console.log('Using color image:', colorUrl);
-        return colorUrl;
-      }
-      
-      console.log('No images available, using placeholder');
-      return placeholderUrl;
-    } catch (error) {
-      console.error('Error determining initial image URL:', error);
-      return placeholderUrl;
+      new URL(cleanUrl);
+      return cleanUrl;
+    } catch {
+      console.warn('Invalid image URL:', cleanUrl);
+      return null;
     }
   };
 
-  const [imageUrl, setImageUrl] = useState(determineInitialImageUrl());
-  const [imageError, setImageError] = useState(false);
+  const getBestAvailableImage = (): string => {
+    // Try to get the bw01 image first
+    const bw01Image = prenda.imagenes_bw?.find(img => 
+      img.url && (img.url.includes('-bw01.') || img.url.includes('-bw1.'))
+    );
+    
+    if (bw01Image?.url) {
+      const cleanUrl = cleanImageUrl(bw01Image.url);
+      if (cleanUrl) return cleanUrl;
+    }
+    
+    // If no bw01, try any other BW image
+    const validBwImage = prenda.imagenes_bw?.find(img => cleanImageUrl(img.url));
+    if (validBwImage?.url) {
+      return cleanImageUrl(validBwImage.url) || placeholderUrl;
+    }
+    
+    // Fall back to the first valid color image
+    const validColorImage = prenda.imagenes?.find(img => cleanImageUrl(img.url));
+    if (validColorImage?.url) {
+      return cleanImageUrl(validColorImage.url) || placeholderUrl;
+    }
+    
+    // If no valid images found, use placeholder
+    return placeholderUrl;
+  };
+
+  const [imageUrl, setImageUrl] = useState<string>(() => getBestAvailableImage());
+  const [imageError, setImageError] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
 
   // Update image URL when product data changes
   useEffect(() => {
-    const newImageUrl = determineInitialImageUrl();
-    console.log('Image data changed for product:', {
-      id: prenda.id,
-      hasImages: prenda.imagenes && prenda.imagenes.length > 0,
-      hasBwImages: prenda.imagenes_bw && prenda.imagenes_bw.length > 0,
-      newImageUrl
-    });
-    
+    const newImageUrl = getBestAvailableImage();
     setImageUrl(newImageUrl);
     setImageError(false);
-  }, [
-    prenda.id,
-    prenda.imagenes,
-    prenda.imagenes_bw
-  ]);
+    setIsLoading(true);
+  }, [prenda.id, JSON.stringify(prenda.imagenes), JSON.stringify(prenda.imagenes_bw)]);
 
   const imageAiHint = `${prenda.categoria_nombre?.toLowerCase() || 'ropa'} ${prenda.nombre_prenda?.split(" ")[0]?.toLowerCase() || 'producto'}`.substring(0,20);
 
@@ -78,40 +78,50 @@ export function ProductCard({ prenda }: ProductCardProps) {
 
     >
       <div className="relative w-full overflow-hidden bg-muted aspect-square group">
-        {!imageError ? (
-          <Image
-            src={imageUrl}
-            alt={prenda.nombre_prenda}
-            fill
-            sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, (max-width: 1280px) 20vw, 16vw"
-            className={`object-cover transition-opacity duration-300 ${
-              prenda.stock === 0 ? 'opacity-70' : ''
-            }`}
-            data-ai-hint={imageAiHint}
-            priority={prenda.id < 7} 
-            key={prenda.id}
-            onError={(e) => {
-              console.error(`Failed to load image: ${imageUrl}`);
-              console.log('Image error details:', e);
-              
-              // Try to fall back to the first color image if we were trying to show a BW image
-              if (imageUrl.includes('-bw') && prenda.imagenes?.[0]?.url) {
-                const fallbackUrl = prenda.imagenes[0].url;
-                console.log('Falling back to first color image:', fallbackUrl);
-                setImageUrl(fallbackUrl);
-              } else if (prenda.imagenes_bw?.[0]?.url && !imageUrl.includes('-bw')) {
-                // If we were showing a color image that failed, try the first BW image
-                const fallbackUrl = prenda.imagenes_bw[0].url;
-                console.log('Falling back to first BW image:', fallbackUrl);
-                setImageUrl(fallbackUrl);
-              } else {
-                console.log('No fallback image available, showing error state');
-                setImageError(true);
-              }
-            }}
-          />
-        ) : (
-          <div className="w-full h-full bg-gray-100 flex items-center justify-center">
+        {isLoading && !imageError && (
+          <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
+            <div className="w-8 h-8 border-2 border-gray-300 border-t-blue-500 rounded-full animate-spin"></div>
+          </div>
+        )}
+        
+        <Image
+          src={imageError ? placeholderUrl : imageUrl}
+          alt={prenda.nombre_prenda}
+          fill
+          sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, (max-width: 1280px) 20vw, 16vw"
+          className={`object-cover transition-opacity duration-300 ${
+            prenda.stock === 0 ? 'opacity-70' : ''
+          } ${isLoading ? 'opacity-0' : 'opacity-100'}`}
+          data-ai-hint={imageAiHint}
+          priority={prenda.id < 7}
+          key={`${prenda.id}-${imageUrl}`}
+          onLoadingComplete={() => setIsLoading(false)}
+          onError={(e) => {
+            console.warn('Failed to load image:', {
+              url: imageUrl,
+              productId: prenda.id,
+              sku: prenda.sku,
+              error: e?.nativeEvent?.type || 'Unknown error'
+            });
+            
+            // Try to find a fallback image
+            const fallbackImage = [
+              ...(prenda.imagenes_bw || []),
+              ...(prenda.imagenes || [])
+            ].find(img => img.url && img.url !== imageUrl && cleanImageUrl(img.url));
+            
+            if (fallbackImage?.url) {
+              setImageUrl(cleanImageUrl(fallbackImage.url) || placeholderUrl);
+              setIsLoading(true);
+            } else {
+              setImageError(true);
+              setIsLoading(false);
+            }
+          }}
+        />
+        
+        {imageError && (
+          <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-100 p-4 text-center">
             <span className="text-gray-400 text-sm">Imagen no disponible</span>
           </div>
         )}
