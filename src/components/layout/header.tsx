@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import Image from 'next/image';
+import { useState, useEffect } from 'react';
 import { Instagram, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { CartButton } from '@/components/cart/cart-button';
@@ -31,9 +32,7 @@ export function Header() {
               <Instagram className="h-5 w-5" />
             </Link>
           </Button>
-          <Button variant="ghost" size="icon" className="text-foreground/70 hover:text-foreground" aria-label="Search">
-            <Search className="h-5 w-5" />
-          </Button>
+
           <CartButton />
           <ThemeToggle />
           {/* Botón de administrador con autenticación */}
