@@ -713,31 +713,59 @@ interface ZodShapeIterable extends z.ZodObject<any, any, any, any, any> {
   shape: Record<string, z.ZodTypeAny>;
 }
 
-// Helper function to normalize image URLs (e.g., changes 'bw1.png' to 'bw01.png')
-// Only normalizes bw1/bw2 to bw01/bw02, leaves other numbers unchanged
+/**
+ * Normalizes image URLs to ensure consistent formatting
+ * - Converts 'bw1.png' to 'bw01.png' and 'bw2.png' to 'bw02.png'
+ * - Leaves other BW image numbers unchanged (e.g., 'bw03.png' stays as is)
+ * - Handles both .png and .jpg extensions
+ */
 function normalizeImageUrl(url: string): string {
-  if (!url) return url;
+  if (!url) {
+    console.log('normalizeImageUrl: Received empty URL');
+    return url;
+  }
   
   const originalUrl = url;
   
-  // Handle BW images with various patterns
-  // Only normalize -bw1 and -bw2 to -bw01 and -bw02, leave others unchanged
-  url = url.replace(/(-bw)([12])(\.\w+)$/i, (match, prefix, num, ext) => {
-    return `${prefix}0${num}${ext}`; // Always add leading zero for 1-2
-  });
-  
-  // Handle color images (keep existing behavior for color images)
-  url = url.replace(/(-img)(\d+)(\.\w+)$/i, (match, prefix, num, ext) => {
-    const number = parseInt(num, 10);
-    return `${prefix}${number < 10 ? '0' + number : number}${ext}`;
-  });
-  
-  // Log if we made any changes
-  if (url !== originalUrl) {
-    console.log(`Normalized image URL: ${originalUrl} -> ${url}`);
+  try {
+    // First, handle the case where the URL might already be normalized
+    if (url.includes('-bw01.') || url.includes('-bw02.')) {
+      // Already in the correct format, no need to modify
+      console.log(`normalizeImageUrl: URL already normalized: ${url}`);
+      return url;
+    }
+    
+    // Handle BW images with single-digit numbers (1 or 2 only)
+    // This matches patterns like -bw1.png or -bw2.jpg
+    const bwMatch = url.match(/(.*-bw)([12])(\.(?:png|jpg|jpeg|webp))$/i);
+    if (bwMatch) {
+      const [_, base, num, ext] = bwMatch;
+      const normalized = `${base}0${num}${ext}`;
+      console.log(`normalizeImageUrl: Normalized BW image URL: ${url} -> ${normalized}`);
+      return normalized;
+    }
+    
+    // Handle color images (img1.jpg -> img01.jpg)
+    const colorMatch = url.match(/(.*-img)(\d+)(\.(?:png|jpg|jpeg|webp))$/i);
+    if (colorMatch) {
+      const [_, base, num, ext] = colorMatch;
+      const number = parseInt(num, 10);
+      const normalized = `${base}${number < 10 ? '0' + number : number}${ext}`;
+      if (normalized !== url) {
+        console.log(`normalizeImageUrl: Normalized color image URL: ${url} -> ${normalized}`);
+      }
+      return normalized;
+    }
+    
+    // If we get here, the URL didn't match any of our patterns
+    console.log(`normalizeImageUrl: No normalization needed for URL: ${url}`);
+    return url;
+    
+  } catch (error) {
+    console.error('Error in normalizeImageUrl:', error);
+    console.log('Original URL:', originalUrl);
+    return originalUrl; // Return original on error
   }
-  
-  return url;
 }
 
 export async function fetchAllProducts(): Promise<Prenda[]> {
@@ -794,64 +822,34 @@ export async function fetchAllProducts(): Promise<Prenda[]> {
     // Group images by product_id for easier lookup
     const imagesByProductId = new Map<number, { imagenes: Imagen[], imagenes_bw: Imagen[] }>();
     
-    // Process color images
-    colorImages.forEach(img => {
+    // Process color images - use URLs directly from DB
+    colorImages.forEach((img: Imagen) => {
       if (!imagesByProductId.has(img.prenda_id)) {
         imagesByProductId.set(img.prenda_id, { imagenes: [], imagenes_bw: [] });
       }
-      // Normalize the image URL before adding it
-      const normalizedImg = { ...img, url: normalizeImageUrl(img.url) };
-      imagesByProductId.get(img.prenda_id)?.imagenes.push(normalizedImg);
+      // Use the URL directly from the database
+      imagesByProductId.get(img.prenda_id)?.imagenes.push(img);
     });
 
-    // Process BW images - only include bw1/bw2 (or bw01/bw02) images
+    // Process BW images - use URLs directly from DB
     console.log('Total BW images to process:', bwImages.length);
     
-    bwImages.forEach((img, index) => {
-      const isProblematic = img.url.includes('TRK-132-bw01') || img.url.includes('TRK-164-bw01');
-      
-      if (isProblematic) {
-        console.log(`\n[${index}] Processing BW image:`, img.url);
+    bwImages.forEach((img: Imagen) => {
+      if (!imagesByProductId.has(img.prenda_id)) {
+        imagesByProductId.set(img.prenda_id, { imagenes: [], imagenes_bw: [] });
       }
-      
-      const bwMatch = img.url.match(/-bw(\d+)\./i);
-      const bwNumber = bwMatch ? parseInt(bwMatch[1], 10) : null;
-      
-      // Only process if it's a valid BW image (no number, or number 1-2)
-      const isValidBW = bwNumber === null || (bwNumber >= 1 && bwNumber <= 2);
-      
-      if (isProblematic) {
-        console.log(`BW Match:`, bwMatch);
-        console.log(`BW Number:`, bwNumber);
-        console.log(`Is valid BW:`, isValidBW);
-      }
-      
-      if (isValidBW) {
-        if (!imagesByProductId.has(img.prenda_id)) {
-          imagesByProductId.set(img.prenda_id, { imagenes: [], imagenes_bw: [] });
-        }
-        // Normalize the BW image URL before adding it (will only normalize bw1/bw2)
-        const normalizedImg = { ...img, url: normalizeImageUrl(img.url) };
-        imagesByProductId.get(img.prenda_id)?.imagenes_bw.push(normalizedImg);
-        
-        if (isProblematic) {
-          console.log('Added BW image:', normalizedImg.url);
-          const product = productRows.find(p => p.id === img.prenda_id);
-          console.log('For product:', product?.codigo || `ID: ${img.prenda_id}`);
-        }
-      } else if (isProblematic) {
-        console.log(`Skipping invalid BW image: ${img.url}`);
-      }
+      // Use the BW URL directly from the database
+      imagesByProductId.get(img.prenda_id)?.imagenes_bw.push(img);
     });
     
     // Log summary of BW images by product
     console.log('\nBW Images Summary by Product:');
-    imagesByProductId.forEach((images, productId) => {
+    imagesByProductId.forEach((images: { imagenes: Imagen[], imagenes_bw: Imagen[] }, productId: number) => {
       if (images.imagenes_bw.length > 0) {
-        const product = productRows.find(p => p.id === productId);
+        const product = productRows.find((p: { id: number }) => p.id === productId);
         console.log(`- ${product?.codigo || `ID: ${productId}`}: ${images.imagenes_bw.length} BW images`);
-        if (images.imagenes_bw.some(img => img.url.includes('TRK-132') || img.url.includes('TRK-164'))) {
-          console.log('  Images:', images.imagenes_bw.map(img => img.url));
+        if (images.imagenes_bw.some((img: Imagen) => img.url.includes('TRK-132') || img.url.includes('TRK-164'))) {
+          console.log('  Images:', images.imagenes_bw.map((img: Imagen) => img.url));
         }
       }
     });

@@ -17,57 +17,119 @@ export function ProductCard({ prenda }: ProductCardProps) {
   const cleanImageUrl = (url: string | undefined): string | null => {
     if (!url) return null;
     
-    // Remove any whitespace and normalize the URL
-    const cleanUrl = url.trim();
-    
-    // Basic URL validation
     try {
-      new URL(cleanUrl);
+      // Remove any query parameters and hash
+      let cleanUrl = url.split('?')[0].split('#')[0];
+      
+      // Ensure the URL is properly encoded
+      cleanUrl = encodeURI(cleanUrl);
+      
+      // If it's already a full URL, return as is
+      if (cleanUrl.startsWith('http')) {
+        return cleanUrl;
+      }
+      
+      // If it's a relative path, ensure it starts with a slash
+      if (!cleanUrl.startsWith('/')) {
+        cleanUrl = `/${cleanUrl}`;
+      }
+      
+      // For local development, use the full URL
+      if (process.env.NODE_ENV === 'development') {
+        // Remove any double slashes that might cause issues
+        cleanUrl = cleanUrl.replace(/([^:]\/)\/+/g, '$1');
+        return `https://truevintageperu.com${cleanUrl}`;
+      }
+      
+      // In production, use relative paths for Next.js optimization
       return cleanUrl;
-    } catch {
-      console.warn('Invalid image URL:', cleanUrl);
+    } catch (error) {
+      console.error('Error cleaning image URL:', { url, error });
       return null;
     }
   };
 
-  const getBestAvailableImage = (): string => {
+  const getBestAvailableImage = (): { url: string; isBw01: boolean } => {
     // Try to get the bw01 image first
-    const bw01Image = prenda.imagenes_bw?.find(img => 
-      img.url && (img.url.includes('-bw01.') || img.url.includes('-bw1.'))
-    );
-    
-    if (bw01Image?.url) {
-      const cleanUrl = cleanImageUrl(bw01Image.url);
-      if (cleanUrl) return cleanUrl;
+    if (prenda.imagenes_bw?.length) {
+      // First try to find bw01 or bw1
+      const bw01Image = prenda.imagenes_bw.find(img => 
+        img?.url?.match(/-bw0?1\.(png|jpg|jpeg|webp)$/i)
+      );
+      
+      // If we found a bw01 image, use it
+      if (bw01Image?.url) {
+        const cleanUrl = cleanImageUrl(bw01Image.url);
+        if (cleanUrl) {
+          return { url: cleanUrl, isBw01: true };
+        }
+      }
+      
+      // If no bw01, try any other BW image
+      for (const img of prenda.imagenes_bw) {
+        if (img?.url) {
+          const cleanUrl = cleanImageUrl(img.url);
+          if (cleanUrl) {
+            return { 
+              url: cleanUrl, 
+              isBw01: img.url.includes('-bw01.') || img.url.includes('-bw1.') 
+            };
+          }
+        }
+      }
     }
     
-    // If no bw01, try any other BW image
-    const validBwImage = prenda.imagenes_bw?.find(img => cleanImageUrl(img.url));
-    if (validBwImage?.url) {
-      return cleanImageUrl(validBwImage.url) || placeholderUrl;
-    }
-    
-    // Fall back to the first valid color image
-    const validColorImage = prenda.imagenes?.find(img => cleanImageUrl(img.url));
-    if (validColorImage?.url) {
-      return cleanImageUrl(validColorImage.url) || placeholderUrl;
+    // Fall back to color images if no BW images available
+    if (prenda.imagenes?.length) {
+      for (const img of prenda.imagenes) {
+        if (img?.url) {
+          const cleanUrl = cleanImageUrl(img.url);
+          if (cleanUrl) {
+            return { url: cleanUrl, isBw01: false };
+          }
+        }
+      }
     }
     
     // If no valid images found, use placeholder
-    return placeholderUrl;
+    return { url: placeholderUrl, isBw01: false };
   };
 
-  const [imageUrl, setImageUrl] = useState<string>(() => getBestAvailableImage());
-  const [imageError, setImageError] = useState<boolean>(false);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
-
-  // Update image URL when product data changes
+  const [imageState, setImageState] = useState<{
+    url: string;
+    isBw01: boolean;
+    isLoading: boolean;
+    error: boolean;
+  }>(() => ({
+    ...getBestAvailableImage(),
+    isLoading: true,
+    error: false
+  }));
+  
+  // Efecto para manejar la carga inicial y cambios en las imágenes
   useEffect(() => {
-    const newImageUrl = getBestAvailableImage();
-    setImageUrl(newImageUrl);
-    setImageError(false);
-    setIsLoading(true);
+    // Clear any failed image caches for this product
+    if (prenda.imagenes_bw?.length) {
+      prenda.imagenes_bw.forEach(img => {
+        if (img?.url) {
+          const cleanUrl = cleanImageUrl(img.url);
+          if (cleanUrl) {
+            sessionStorage.removeItem(`failed:${cleanUrl}`);
+          }
+        }
+      });
+    }
+    
+    const bestImage = getBestAvailableImage();
+    
+    setImageState({
+      ...bestImage,
+      isLoading: true,
+      error: false
+    });
   }, [prenda.id, JSON.stringify(prenda.imagenes), JSON.stringify(prenda.imagenes_bw)]);
+
+
 
   const imageAiHint = `${prenda.categoria_nombre?.toLowerCase() || 'ropa'} ${prenda.nombre_prenda?.split(" ")[0]?.toLowerCase() || 'producto'}`.substring(0,20);
 
@@ -78,49 +140,87 @@ export function ProductCard({ prenda }: ProductCardProps) {
 
     >
       <div className="relative w-full overflow-hidden bg-muted aspect-square group">
-        {isLoading && !imageError && (
+        {imageState.isLoading && !imageState.error && (
           <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
             <div className="w-8 h-8 border-2 border-gray-300 border-t-blue-500 rounded-full animate-spin"></div>
           </div>
         )}
         
         <Image
-          src={imageError ? placeholderUrl : imageUrl}
-          alt={prenda.nombre_prenda}
+          src={imageState.url}
+          alt={prenda.nombre || 'Producto'}
           fill
-          sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, (max-width: 1280px) 20vw, 16vw"
-          className={`object-cover transition-opacity duration-300 ${
-            prenda.stock === 0 ? 'opacity-70' : ''
-          } ${isLoading ? 'opacity-0' : 'opacity-100'}`}
-          data-ai-hint={imageAiHint}
-          priority={prenda.id < 7}
-          key={`${prenda.id}-${imageUrl}`}
-          onLoadingComplete={() => setIsLoading(false)}
+          className={`object-cover transition-opacity duration-300 ${imageState.isLoading ? 'opacity-0' : 'opacity-100'}`}
+          sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
+          unoptimized={process.env.NODE_ENV === 'development'}
+          onLoad={() => {
+            setImageState(prev => ({ ...prev, isLoading: false }));
+          }}
           onError={(e) => {
-            console.warn('Failed to load image:', {
-              url: imageUrl,
-              productId: prenda.id,
-              sku: prenda.sku,
-              error: e?.nativeEvent?.type || 'Unknown error'
-            });
+            // Mark this URL as failed in session storage
+            if (imageState.url && imageState.url !== placeholderUrl) {
+              sessionStorage.setItem(`failed:${imageState.url}`, 'true');
+            }
             
-            // Try to find a fallback image
-            const fallbackImage = [
-              ...(prenda.imagenes_bw || []),
-              ...(prenda.imagenes || [])
-            ].find(img => img.url && img.url !== imageUrl && cleanImageUrl(img.url));
+            // Get all available images in order of preference
+            const allImages = [];
             
-            if (fallbackImage?.url) {
-              setImageUrl(cleanImageUrl(fallbackImage.url) || placeholderUrl);
-              setIsLoading(true);
+            // 1. BW01 images first
+            if (prenda.imagenes_bw?.length) {
+              // First try to find bw01 or bw1
+              const bw01Image = prenda.imagenes_bw.find(img => 
+                img?.url?.match(/-bw0?1\.(png|jpg|jpeg|webp)$/i)
+              );
+              if (bw01Image?.url) {
+                const cleanUrl = cleanImageUrl(bw01Image.url);
+                if (cleanUrl) allImages.push({ url: cleanUrl, isBw01: true });
+              }
+              
+              // Then add other BW images
+              for (const img of prenda.imagenes_bw) {
+                if (img?.url) {
+                  const cleanUrl = cleanImageUrl(img.url);
+                  if (cleanUrl && !cleanUrl.includes('bw01') && !cleanUrl.includes('bw1')) {
+                    allImages.push({ url: cleanUrl, isBw01: false });
+                  }
+                }
+              }
+            }
+            
+            // 2. Then color images
+            if (prenda.imagenes?.length) {
+              for (const img of prenda.imagenes) {
+                if (img?.url) {
+                  const cleanUrl = cleanImageUrl(img.url);
+                  if (cleanUrl) allImages.push({ url: cleanUrl, isBw01: false });
+                }
+              }
+            }
+            
+            // Find the first image that hasn't failed yet and isn't the current one
+            const nextImage = allImages.find(img => 
+              img.url !== imageState.url && 
+              !sessionStorage.getItem(`failed:${img.url}`)
+            );
+            
+            if (nextImage) {
+              setImageState({
+                ...nextImage,
+                isLoading: true,
+                error: false
+              });
             } else {
-              setImageError(true);
-              setIsLoading(false);
+              // No more images to try, show error
+              setImageState(prev => ({
+                ...prev,
+                isLoading: false,
+                error: true
+              }));
             }
           }}
         />
         
-        {imageError && (
+        {imageState.error && !imageState.isLoading && (
           <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-100 p-4 text-center">
             <span className="text-gray-400 text-sm">Imagen no disponible</span>
           </div>
