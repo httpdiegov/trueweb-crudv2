@@ -18,6 +18,8 @@ interface CatalogClientProps {
   initialDropValue: string;
   category?: string;
   size?: string;
+  onCategoryChange?: (category: string | undefined) => void;
+  onSizeChange?: (size: string | undefined) => void;
 }
 
 export function CatalogClient({
@@ -129,7 +131,25 @@ export function CatalogClient({
     return sorted;
   }, [products, categoriesParams, sizesParams, showNewArrivals, dropValue, sortOption]);
   
-  // Función para alternar nuevos ingresos
+  // Handle category toggle
+  const toggleCategory = (categoryName: string) => {
+    setSelectedCategories(prev => 
+      prev.includes(categoryName)
+        ? prev.filter(c => c !== categoryName)
+        : [...prev, categoryName]
+    );
+  };
+
+  // Handle size toggle
+  const toggleSize = (sizeName: string) => {
+    setSelectedSizes(prev => 
+      prev.includes(sizeName)
+        ? prev.filter(s => s !== sizeName)
+        : [...prev, sizeName]
+    );
+  };
+
+  // Toggle new arrivals
   const toggleNewArrivals = () => {
     setShowNewArrivals(!showNewArrivals);
   };
@@ -206,13 +226,7 @@ export function CatalogClient({
                                 <Checkbox 
                                   id={`cat-${cat.id}`}
                                   checked={selectedCategories.includes(cat.nom_categoria)}
-                                  onCheckedChange={(checked) => {
-                                    setSelectedCategories(prev => 
-                                      checked 
-                                        ? [...prev, cat.nom_categoria]
-                                        : prev.filter(c => c !== cat.nom_categoria)
-                                    );
-                                  }}
+                                  onCheckedChange={(checked) => toggleCategory(cat.nom_categoria)}
                                   className="h-5 w-5 rounded-md border-gray-300 text-primary focus:ring-primary"
                                 />
                                 <Label 
@@ -236,13 +250,7 @@ export function CatalogClient({
                                   id={`size-${size.id}`}
                                   className="sr-only"
                                   checked={selectedSizes.includes(size.nom_talla)}
-                                  onCheckedChange={(checked) => {
-                                    setSelectedSizes(prev => 
-                                      checked 
-                                        ? [...prev, size.nom_talla]
-                                        : prev.filter(s => s !== size.nom_talla)
-                                    );
-                                  }}
+                                  onCheckedChange={(checked) => toggleSize(size.nom_talla)}
                                 />
                                 <Label 
                                   htmlFor={`size-${size.id}`}

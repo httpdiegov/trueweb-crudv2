@@ -1,22 +1,29 @@
 import { Suspense } from 'react';
 import CatalogContent from './catalog-content';
 
-// This tells Next.js that this page can be statically generated
-export const dynamic = 'force-static';
+// This tells Next.js to render this page on-demand, not at build time
+export const dynamic = 'force-dynamic';
 
-export default function HomePage({
-  searchParams,
-}: {
-  searchParams?: { [key: string]: string | string[] | undefined };
-}) {
-  // Safely extract parameters with null checks
-  const category = Array.isArray(searchParams?.category) 
-    ? searchParams.category[0] 
-    : searchParams?.category;
+// Revalidate the cache every 60 seconds
+export const revalidate = 60;
+
+interface HomePageProps {
+  searchParams?: { 
+    [key: string]: string | string[] | undefined 
+  };
+}
+
+export default async function HomePage({ searchParams = {} }: HomePageProps) {
+  // Safely extract category and size from searchParams
+  const searchParamsObj = await Promise.resolve(searchParams);
+  
+  const category = Array.isArray(searchParamsObj.category) 
+    ? searchParamsObj.category[0] 
+    : searchParamsObj.category;
     
-  const size = Array.isArray(searchParams?.size) 
-    ? searchParams.size[0] 
-    : searchParams?.size;
+  const size = Array.isArray(searchParamsObj.size) 
+    ? searchParamsObj.size[0] 
+    : searchParamsObj.size;
 
   return (
     <Suspense>

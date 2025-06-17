@@ -189,7 +189,8 @@ export async function fetchProducts(): Promise<Prenda[]> {
         
         // Crear la nueva URL en el formato correcto solo para imágenes BW
         if (bwImageNumber) {
-          image.url = `https://truevintageperu.com/vtg/${product.drop_name}/${productBase}/BW/${product.sku}/${product.sku}-bw${bwImageNumber}.png`;
+          const imageUrl = `https://truevintageperu.com/vtg/${product.drop_name}/${productBase}/BW/${product.sku}/${product.sku}-bw${bwImageNumber}.png`;
+          image.url = normalizeImageUrl(imageUrl);
         }
       }
       
@@ -206,7 +207,7 @@ export async function fetchProducts(): Promise<Prenda[]> {
         const defaultBwImage = {
           id: 1000000 + product.id, // ID alto para evitar colisiones
           prenda_id: product.id,
-          url: `https://truevintageperu.com/vtg/${product.drop_name}/${productBase}/BW/${productCode}/${productCode}-bw01.png`
+          url: normalizeImageUrl(`https://truevintageperu.com/vtg/${product.drop_name}/${productBase}/BW/${productCode}/${productCode}-bw1.png`)
         };
         
         allBwImages.push(defaultBwImage);
@@ -336,12 +337,15 @@ export async function fetchProductById(id: string | number): Promise<Prenda | un
       // Crear la ruta base para las imágenes BW
       const basePath = `https://truevintageperu.com/vtg/${row.drop_name}/${productBase}/BW/${productCode}`;
       
-      // Crear las URLs de las imágenes BW
-      finalBwImages = Array.from({ length: 3 }, (_, i) => ({
-        id: 1000 + i, // ID temporal alto para evitar colisiones
-        prenda_id: row.id,
-        url: `${basePath}/${productCode}-bw${String(i + 1).padStart(2, '0')}.png`
-      }));
+      // Crear las URLs de las imágenes BW con formato normalizado (solo hasta bw02)
+      finalBwImages = Array.from({ length: 2 }, (_, i) => {
+        const imageUrl = `${basePath}/${productCode}-bw${i + 1}.png`;
+        return {
+          id: 1000 + i, // ID temporal alto para evitar colisiones
+          prenda_id: row.id,
+          url: normalizeImageUrl(imageUrl)
+        };
+      });
       
       console.log('URLs de imágenes BW generadas:', finalBwImages);
     }
@@ -709,6 +713,33 @@ interface ZodShapeIterable extends z.ZodObject<any, any, any, any, any> {
   shape: Record<string, z.ZodTypeAny>;
 }
 
+// Helper function to normalize image URLs (e.g., changes 'bw1.png' to 'bw01.png')
+// Only normalizes bw1/bw2 to bw01/bw02, leaves other numbers unchanged
+function normalizeImageUrl(url: string): string {
+  if (!url) return url;
+  
+  const originalUrl = url;
+  
+  // Handle BW images with various patterns
+  // Only normalize -bw1 and -bw2 to -bw01 and -bw02, leave others unchanged
+  url = url.replace(/(-bw)([12])(\.\w+)$/i, (match, prefix, num, ext) => {
+    return `${prefix}0${num}${ext}`; // Always add leading zero for 1-2
+  });
+  
+  // Handle color images (keep existing behavior for color images)
+  url = url.replace(/(-img)(\d+)(\.\w+)$/i, (match, prefix, num, ext) => {
+    const number = parseInt(num, 10);
+    return `${prefix}${number < 10 ? '0' + number : number}${ext}`;
+  });
+  
+  // Log if we made any changes
+  if (url !== originalUrl) {
+    console.log(`Normalized image URL: ${originalUrl} -> ${url}`);
+  }
+  
+  return url;
+}
+
 export async function fetchAllProducts(): Promise<Prenda[]> {
   try {
     // First, fetch all products with their basic information
@@ -768,26 +799,79 @@ export async function fetchAllProducts(): Promise<Prenda[]> {
       if (!imagesByProductId.has(img.prenda_id)) {
         imagesByProductId.set(img.prenda_id, { imagenes: [], imagenes_bw: [] });
       }
-      imagesByProductId.get(img.prenda_id)?.imagenes.push(img);
+      // Normalize the image URL before adding it
+      const normalizedImg = { ...img, url: normalizeImageUrl(img.url) };
+      imagesByProductId.get(img.prenda_id)?.imagenes.push(normalizedImg);
     });
 
-    // Process BW images
-    bwImages.forEach(img => {
-      if (!imagesByProductId.has(img.prenda_id)) {
-        imagesByProductId.set(img.prenda_id, { imagenes: [], imagenes_bw: [] });
+    // Process BW images - only include bw1/bw2 (or bw01/bw02) images
+    console.log('Total BW images to process:', bwImages.length);
+    
+    bwImages.forEach((img, index) => {
+      const isProblematic = img.url.includes('TRK-132-bw01') || img.url.includes('TRK-164-bw01');
+      
+      if (isProblematic) {
+        console.log(`\n[${index}] Processing BW image:`, img.url);
       }
-      imagesByProductId.get(img.prenda_id)?.imagenes_bw.push(img);
+      
+      const bwMatch = img.url.match(/-bw(\d+)\./i);
+      const bwNumber = bwMatch ? parseInt(bwMatch[1], 10) : null;
+      
+      // Only process if it's a valid BW image (no number, or number 1-2)
+      const isValidBW = bwNumber === null || (bwNumber >= 1 && bwNumber <= 2);
+      
+      if (isProblematic) {
+        console.log(`BW Match:`, bwMatch);
+        console.log(`BW Number:`, bwNumber);
+        console.log(`Is valid BW:`, isValidBW);
+      }
+      
+      if (isValidBW) {
+        if (!imagesByProductId.has(img.prenda_id)) {
+          imagesByProductId.set(img.prenda_id, { imagenes: [], imagenes_bw: [] });
+        }
+        // Normalize the BW image URL before adding it (will only normalize bw1/bw2)
+        const normalizedImg = { ...img, url: normalizeImageUrl(img.url) };
+        imagesByProductId.get(img.prenda_id)?.imagenes_bw.push(normalizedImg);
+        
+        if (isProblematic) {
+          console.log('Added BW image:', normalizedImg.url);
+          const product = productRows.find(p => p.id === img.prenda_id);
+          console.log('For product:', product?.codigo || `ID: ${img.prenda_id}`);
+        }
+      } else if (isProblematic) {
+        console.log(`Skipping invalid BW image: ${img.url}`);
+      }
+    });
+    
+    // Log summary of BW images by product
+    console.log('\nBW Images Summary by Product:');
+    imagesByProductId.forEach((images, productId) => {
+      if (images.imagenes_bw.length > 0) {
+        const product = productRows.find(p => p.id === productId);
+        console.log(`- ${product?.codigo || `ID: ${productId}`}: ${images.imagenes_bw.length} BW images`);
+        if (images.imagenes_bw.some(img => img.url.includes('TRK-132') || img.url.includes('TRK-164'))) {
+          console.log('  Images:', images.imagenes_bw.map(img => img.url));
+        }
+      }
     });
 
     // Combine product data with images
-    return productRows.map(product => {
-      const images = imagesByProductId.get(product.id) || { imagenes: [], imagenes_bw: [] };
+    const productsWithImages = productRows.map(product => {
+      const images = imagesByProductId.get(Number(product.id)) || { imagenes: [], imagenes_bw: [] };
+      
       return {
         ...product,
-        imagenes: sortProductImages(images.imagenes),
-        imagenes_bw: images.imagenes_bw || []
+        imagenes: images.imagenes,
+        imagenes_bw: images.imagenes_bw
       };
     });
+    
+    // Log all product codes to verify TRK-164 is in the list
+    console.log('All product codes:', productsWithImages.map(p => p.codigo).filter(Boolean));
+    
+    // Return the products with their associated images
+    return productsWithImages;
   } catch (error) {
     console.error('Error al obtener todos los productos:', error);
     return [];

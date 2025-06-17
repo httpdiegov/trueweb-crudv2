@@ -11,11 +11,22 @@ interface CatalogContentProps {
   size?: string;
 }
 
-export default function CatalogContent({ category, size }: CatalogContentProps) {
+export default function CatalogContent({ 
+  category: initialCategory, 
+  size: initialSize 
+}: CatalogContentProps) {
   const [categories, setCategories] = useState<Categoria[]>([]);
   const [sizes, setSizes] = useState<Talla[]>([]);
   const [dropValue, setDropValue] = useState('');
   const [isLoading, setIsLoading] = useState(true);
+  const [category, setCategory] = useState(initialCategory);
+  const [size, setSize] = useState(initialSize);
+
+  // Update internal state when props change
+  useEffect(() => {
+    setCategory(initialCategory);
+    setSize(initialSize);
+  }, [initialCategory, initialSize]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -44,6 +55,11 @@ export default function CatalogContent({ category, size }: CatalogContentProps) 
   }
 
   // Pasar los parámetros de búsqueda al componente CatalogClient
+  // Only render the client component when we have data
+  if (isLoading) {
+    return <div>Cargando catálogo...</div>;
+  }
+
   return (
     <CatalogClient
       initialCategories={categories}
@@ -51,6 +67,8 @@ export default function CatalogContent({ category, size }: CatalogContentProps) 
       initialDropValue={dropValue}
       category={category}
       size={size}
+      onCategoryChange={setCategory}
+      onSizeChange={setSize}
     />
   );
 }
