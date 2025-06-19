@@ -148,10 +148,11 @@ export function ProductCard({ prenda }: ProductCardProps) {
         
         <Image
           src={imageState.url}
-          alt={prenda.nombre || 'Producto'}
+          alt={prenda.nombre_prenda || 'Producto'}
           fill
           className={`object-cover transition-opacity duration-300 ${imageState.isLoading ? 'opacity-0' : 'opacity-100'}`}
           sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
+          quality={100}
           unoptimized={process.env.NODE_ENV === 'development'}
           onLoad={() => {
             setImageState(prev => ({ ...prev, isLoading: false }));
