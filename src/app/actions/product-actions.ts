@@ -225,7 +225,6 @@ export async function fetchProducts(): Promise<Prenda[]> {
 
     return productRows.map(row => {
       const rawImagesForPrenda = imagesByPrendaId[Number(row.id)] || [];
-      // Regex to identify BW images (e.g., SKU-bw01.jpg, SKU-bw02.png)
       const bwImageRegex = /-bw\d{2,}\.(jpg|jpeg|png|webp|gif)$/i;
       
       const bwImages = rawImagesForPrenda.filter(img => bwImageRegex.test(img.url));
