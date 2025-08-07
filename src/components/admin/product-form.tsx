@@ -22,7 +22,7 @@ import { Loader2, Trash2, ImagePlus, ArrowUp, ArrowDown, X, Film } from 'lucide-
 import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { fetchAvailableBrands, fetchAvailableCategories, fetchAvailableSizes } from '@/app/actions/product-actions';
+import { fetchAvailableBrands, fetchAvailableCategories, fetchAvailableSizes, generateNextSku } from '@/app/actions/product-actions';
 import NextImage from 'next/image';
 
 const productFormSchemaClient = z.object({
@@ -73,6 +73,7 @@ export function ProductForm({ initialData, onSubmitAction, isEditing }: ProductF
   const [currentBwImages, setCurrentBwImages] = useState<Imagen[]>([]);
   const [newColorImageFiles, setNewColorImageFiles] = useState<ImageFileWithPreview[]>([]);
   const [newBwImageFiles, setNewBwImageFiles] = useState<ImageFileWithPreview[]>([]);
+  const [isGeneratingSku, setIsGeneratingSku] = useState(false);
 
   useEffect(() => {
     async function loadDropdownData() {
@@ -146,6 +147,36 @@ export function ProductForm({ initialData, onSubmitAction, isEditing }: ProductF
   
   // Get form state
   const { isDirty } = form.formState;
+
+  // useEffect para generar SKU automáticamente cuando cambie la categoría
+  useEffect(() => {
+    const generateSku = async () => {
+      const categoriaId = form.watch('categoria_id');
+      
+      // Solo generar SKU si:
+      // 1. No estamos editando (isEditing = false)
+      // 2. Se ha seleccionado una categoría válida
+      // 3. No estamos ya generando un SKU
+      if (!isEditing && categoriaId && categoriaId > 0 && !isGeneratingSku) {
+        try {
+          setIsGeneratingSku(true);
+          const newSku = await generateNextSku(categoriaId);
+          form.setValue('sku', newSku);
+        } catch (error) {
+          console.error('Error generando SKU:', error);
+          toast({
+            title: 'Error',
+            description: 'No se pudo generar el SKU automáticamente.',
+            variant: 'destructive'
+          });
+        } finally {
+          setIsGeneratingSku(false);
+        }
+      }
+    };
+
+    generateSku();
+  }, [form.watch('categoria_id'), isEditing, isGeneratingSku, form, toast]);
 
   // Initialize form and images when component mounts or initialData changes
   useEffect(() => {
@@ -366,10 +397,37 @@ export function ProductForm({ initialData, onSubmitAction, isEditing }: ProductF
                 name="sku"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>SKU</FormLabel>
+                    <FormLabel className="flex items-center gap-2">
+                      SKU
+                      {!isEditing && (
+                        <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full font-normal">
+                          Auto-generado
+                        </span>
+                      )}
+                    </FormLabel>
                     <FormControl>
-                      <Input placeholder="Ej: TSB001" {...field} />
+                      <div className="relative">
+                        <Input 
+                          placeholder={isGeneratingSku ? "Generando SKU..." : "Ej: TSB001"} 
+                          {...field} 
+                          readOnly={!isEditing}
+                          disabled={isGeneratingSku}
+                          className={!isEditing ? "bg-blue-50 border-blue-200 text-blue-900 font-medium cursor-not-allowed" : ""}
+                        />
+                        {!isEditing && (
+                          <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                            <svg className="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                          </div>
+                        )}
+                      </div>
                     </FormControl>
+                    {!isEditing && (
+                      <p className="text-xs text-blue-600 mt-1">
+                        El SKU se genera automáticamente basado en la categoría seleccionada
+                      </p>
+                    )}
                     <FormMessage />
                   </FormItem>
                 )}

@@ -769,6 +769,56 @@ function normalizeImageUrl(url: string): string {
   }
 }
 
+export async function generateNextSku(categoria_id: number): Promise<string> {
+  try {
+    // 1. Obtener el prefijo de la categoría
+    const categorySql = 'SELECT prefijo FROM categorias WHERE id = ?';
+    const categoryRows = await query(categorySql, [categoria_id]) as any[];
+    
+    if (categoryRows.length === 0) {
+      throw new Error(`No se encontró la categoría con ID: ${categoria_id}`);
+    }
+    
+    const prefijo = categoryRows[0].prefijo;
+    
+    // 2. Buscar el último SKU de esa categoría
+    const lastSkuSql = `
+      SELECT sku 
+      FROM prendas 
+      WHERE categoria_id = ? AND sku LIKE ? 
+      ORDER BY sku DESC 
+      LIMIT 1
+    `;
+    
+    const skuPattern = `${prefijo}-%`;
+    const lastSkuRows = await query(lastSkuSql, [categoria_id, skuPattern]) as any[];
+    
+    let nextNumber = 1;
+    
+    if (lastSkuRows.length > 0) {
+      const lastSku = lastSkuRows[0].sku;
+      // 3. Extraer el número del último SKU (ej: TRK-005 -> 005)
+      const numberMatch = lastSku.match(/-([0-9]+)$/);
+      
+      if (numberMatch) {
+        const lastNumber = parseInt(numberMatch[1], 10);
+        nextNumber = lastNumber + 1;
+      }
+    }
+    
+    // 4. Formatear con ceros a la izquierda (ej: 6 -> 006)
+    const formattedNumber = nextNumber.toString().padStart(3, '0');
+    
+    // 5. Retornar el nuevo SKU (ej: TRK-006)
+    const newSku = `${prefijo}-${formattedNumber}`;
+    
+    return newSku;
+  } catch (error) {
+    console.error('Error generando el siguiente SKU:', error);
+    throw error;
+  }
+}
+
 export async function fetchAllProducts(): Promise<Prenda[]> {
   try {
     // First, fetch all products with their basic information
