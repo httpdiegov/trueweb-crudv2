@@ -255,6 +255,7 @@ export async function fetchProducts(): Promise<Prenda[]> {
         imagenes_bw: sortedBwImages.map(img => ({ ...img, url: img.url.startsWith('bw_') ? img.url.substring(3) : img.url })),
         created_at: row.created_at,
         updated_at: row.updated_at,
+        estado: row.estado
       };
     });
   }
@@ -376,6 +377,7 @@ export async function fetchProductById(id: string | number): Promise<Prenda | un
       imagenes_bw: sortedBwImages.map(img => ({ ...img, url: img.url.startsWith('bw_') ? img.url.substring(3) : img.url })),
       created_at: row.created_at,
       updated_at: row.updated_at,
+      estado: row.estado
     };
     return prenda;
 

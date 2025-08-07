@@ -30,6 +30,7 @@ const productFormSchemaClient = z.object({
   sku: z.string().min(1, { message: 'SKU es requerido.' }),
   precio: z.coerce.number().positive({ message: 'El precio debe ser un número positivo.' }),
   stock: z.coerce.number().int().min(0, { message: 'El stock no puede ser negativo.' }),
+  estado: z.coerce.number().int().min(0).max(1),
   categoria_id: z.coerce.number().int().positive({ message: 'Debe seleccionar una categoría.' }),
   talla_id: z.coerce.number().int().positive({ message: 'Debe seleccionar una talla.' }),
   caracteristicas: z.string().min(5, { message: 'Características son requeridas (mínimo 5 caracteres).' }).optional().nullable(),
@@ -101,6 +102,7 @@ export function ProductForm({ initialData, onSubmitAction, isEditing }: ProductF
         sku: initialData.sku || '',
         precio: initialData.precio || 0,
         stock: initialData.stock || 0,
+        estado: initialData.estado ?? 1,
         categoria_id: initialData.categoria_id || 0,
         talla_id: initialData.talla_id || 0,
         caracteristicas: initialData.caracteristicas || '',
@@ -113,6 +115,7 @@ export function ProductForm({ initialData, onSubmitAction, isEditing }: ProductF
         sku: '',
         precio: 0,
         stock: 0,
+        estado: 1,
         categoria_id: 0,
         talla_id: 0,
         caracteristicas: '',
@@ -129,6 +132,7 @@ export function ProductForm({ initialData, onSubmitAction, isEditing }: ProductF
       sku: initialData?.sku || '',
       precio: initialData?.precio || 0,
       stock: initialData?.stock || 0,
+      estado: initialData?.estado ?? 1,
       categoria_id: initialData?.categoria_id || 0,
       talla_id: initialData?.talla_id || 0,
       caracteristicas: initialData?.caracteristicas || '',
@@ -152,6 +156,7 @@ export function ProductForm({ initialData, onSubmitAction, isEditing }: ProductF
         sku: initialData.sku || '',
         precio: initialData.precio || 0,
         stock: initialData.stock || 0,
+        estado: initialData.estado ?? 1,
         categoria_id: initialData.categoria_id || 0,
         talla_id: initialData.talla_id || 0,
         caracteristicas: initialData.caracteristicas || '',
@@ -371,7 +376,7 @@ export function ProductForm({ initialData, onSubmitAction, isEditing }: ProductF
               />
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <FormField
                 control={form.control}
                 name="precio"
@@ -394,6 +399,30 @@ export function ProductForm({ initialData, onSubmitAction, isEditing }: ProductF
                     <FormControl>
                       <Input type="number" placeholder="Ej: 15" {...field} />
                     </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="estado"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Estado</FormLabel>
+                    <Select
+                      onValueChange={(value) => field.onChange(Number(value))}
+                      value={field.value?.toString()}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Seleccionar estado" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="1">Visible</SelectItem>
+                        <SelectItem value="0">Oculto</SelectItem>
+                      </SelectContent>
+                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}

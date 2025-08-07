@@ -21,7 +21,7 @@ export interface Imagen {
   id: number;
   prenda_id: number;
   url: string;
-  // ai_hint and orden removed to match the simplified DB schema
+
 }
 
 export interface Prenda {
@@ -34,6 +34,7 @@ export interface Prenda {
   medidas?: string | null;
   desc_completa: string;
   stock: number;
+  estado: number; // 0 = oculto, 1 = visible
   categoria_id: number;
   talla_id: number;
   marca_id?: number | null; // Nuevo campo para el ID de la marca

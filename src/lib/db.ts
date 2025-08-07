@@ -25,7 +25,6 @@ export function parseImagenUrls(
     id: index + 1, // Artificial ID for client-side use, DB might not store individual image IDs this way
     prenda_id: prendaId,
     url: url.trim(),
-    aiHint: `${categoria?.toLowerCase() || 'product'} ${nombrePrenda?.split(" ")[0]?.toLowerCase() || `image${index + 1}`}`.substring(0,20)
   }));
 }
 

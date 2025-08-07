@@ -131,7 +131,7 @@ export function ProductCard({ prenda }: ProductCardProps) {
 
 
 
-  const imageAiHint = `${prenda.categoria_nombre?.toLowerCase() || 'ropa'} ${prenda.nombre_prenda?.split(" ")[0]?.toLowerCase() || 'producto'}`.substring(0,20);
+
 
   return (
     <Link

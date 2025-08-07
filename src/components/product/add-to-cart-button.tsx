@@ -38,8 +38,7 @@ export function AddToCartButton({ product, className }: AddToCartButtonProps) {
     console.log('Producto a añadir:', product);
     
     const productToAdd = {
-      ...product,
-      // Asegurarse de que todos los campos requeridos estén presentes
+      // Campos esenciales del producto
       id: product.id,
       sku: product.sku,
       nombre_prenda: product.nombre_prenda,
@@ -49,23 +48,28 @@ export function AddToCartButton({ product, className }: AddToCartButtonProps) {
         prenda_id: product.id,
         url: img.url || ''
       })),
-      // Añadir campos opcionales con valores por defecto
-      caracteristicas: '',
-      medidas: '',
-      desc_completa: '',
-      stock: 0,
-      categoria_id: 0,
-      categoria_nombre: '',
-      talla_id: 0,
-      talla_nombre: '',
       imagenes_bw: (product.imagenes_bw || []).map(img => ({
         ...img,
         prenda_id: product.id,
         url: img.url || ''
       })),
-      marca_id: 0,
-      marca_nombre: '',
-      drop_name: ''
+      // Campos requeridos con valores mínimos necesarios
+      desc_completa: '',
+      stock: 0,
+      estado: 1,
+      categoria_id: 0,
+      talla_id: 0,
+      // Campos opcionales como undefined (no necesarios para el carrito)
+      caracteristicas: undefined,
+      medidas: undefined,
+      drop_name: undefined,
+      marca_id: undefined,
+      categoria_nombre: undefined,
+      categoria_prefijo: undefined,
+      talla_nombre: undefined,
+      marca_nombre: undefined,
+      created_at: undefined,
+      updated_at: undefined
     };
     
     console.log('Producto procesado para el carrito:', productToAdd);

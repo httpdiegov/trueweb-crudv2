@@ -63,18 +63,21 @@ export function AddToCartClient({ product, className }: AddToCartClientProps) {
       // Incluir también las imágenes normales por si acaso
       imagenes: imagenes,
       
-      // Resto de campos
-      caracteristicas: product.caracteristicas || '',
-      medidas: product.medidas || '',
+      // Campos requeridos
       desc_completa: product.desc_completa || '',
       stock: product.stock || 0,
+      estado: product.estado || 1,
       categoria_id: product.categoria_id || 0,
-      categoria_nombre: product.categoria_nombre || '',
       talla_id: product.talla_id || 0,
-      talla_nombre: product.talla_nombre || '',
-      marca_id: product.marca_id || 0,
-      marca_nombre: product.marca_nombre || '',
-      drop_name: product.drop_name || ''
+      
+      // Campos opcionales
+      caracteristicas: product.caracteristicas || undefined,
+      medidas: product.medidas || undefined,
+      categoria_nombre: product.categoria_nombre || undefined,
+      talla_nombre: product.talla_nombre || undefined,
+      marca_id: product.marca_id || undefined,
+      marca_nombre: product.marca_nombre || undefined,
+      drop_name: product.drop_name || undefined
     };
     
     console.log('Producto que se agregará al carrito:', JSON.stringify(productToAdd, null, 2));

@@ -47,13 +47,14 @@ export function ProductTable({ prendas }: ProductTableProps) {
               <TableHead className="text-right">Stock</TableHead>
               <TableHead>Categoría</TableHead>
               <TableHead>Talla</TableHead>
+              <TableHead>Estado</TableHead>
               <TableHead className="text-right w-[120px]">Acciones</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {prendas.length === 0 && (
               <TableRow>
-                <TableCell colSpan={7} className="h-24 text-center text-muted-foreground">
+                <TableCell colSpan={8} className="h-24 text-center text-muted-foreground">
                   No hay productos para mostrar.
                 </TableCell>
               </TableRow>
@@ -70,6 +71,11 @@ export function ProductTable({ prendas }: ProductTableProps) {
                 </TableCell>
                 <TableCell>{prenda.categoria_nombre || `ID: ${prenda.categoria_id}`}</TableCell>
                 <TableCell>{prenda.talla_nombre || `ID: ${prenda.talla_id}`}</TableCell>
+                <TableCell>
+                  <Badge variant={prenda.estado === 1 ? 'default' : 'destructive'} className={prenda.estado === 1 ? 'bg-green-600 hover:bg-green-700' : ''}>
+                    {prenda.estado === 1 ? 'Visible' : 'Oculto'}
+                  </Badge>
+                </TableCell>
                 <TableCell className="text-right">
                   <div className="flex justify-end gap-2">
                     <Button variant="ghost" size="sm" asChild className="text-primary hover:text-primary hover:bg-primary/10">
