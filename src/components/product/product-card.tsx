@@ -139,7 +139,7 @@ export function ProductCard({ prenda }: ProductCardProps) {
       className="block group"
 
     >
-      <div className="relative w-full overflow-hidden bg-muted aspect-square group">
+      <div className="relative w-full overflow-hidden bg-transparent aspect-square group">
         {imageState.isLoading && !imageState.error && (
           <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
             <div className="w-8 h-8 border-2 border-gray-300 border-t-blue-500 rounded-full animate-spin"></div>

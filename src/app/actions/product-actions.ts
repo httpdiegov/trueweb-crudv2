@@ -18,6 +18,7 @@ const productBaseSchema = z.object({
   medidas: z.string().min(1, {message: 'Medidas son requeridas (mínimo 1 caracter)'}).optional().nullable(),
   desc_completa: z.string().min(10, { message: 'Descripción completa es requerida (mínimo 10 caracteres).' }),
   drop_name: z.string().optional().nullable().transform(val => val === '' ? null : val),
+  estado: z.coerce.number().int().optional().default(1), // Añadido para permitir el campo estado
 });
 
 const productCreateSchema = productBaseSchema;
@@ -137,6 +138,7 @@ export async function fetchProducts(): Promise<Prenda[]> {
       LEFT JOIN categorias c ON p.categoria_id = c.id
       LEFT JOIN marcas m ON p.marca_id = m.id
       LEFT JOIN tallas t ON p.talla_id = t.id
+      WHERE p.estado = 1
       ORDER BY p.id DESC
     `;
     const productRows = await query(productsSql) as any[];
@@ -542,7 +544,7 @@ export async function updateProduct(id: number, formData: FormData) {
     const sqlPrenda = `
       UPDATE prendas SET
       drop_name = ?, sku = ?, nombre_prenda = ?, precio = ?, caracteristicas = ?, medidas = ?,
-      desc_completa = ?, stock = ?, categoria_id = ?, marca_id = ?, talla_id = ?
+      desc_completa = ?, stock = ?, categoria_id = ?, marca_id = ?, talla_id = ?, estado = ?
       WHERE id = ?
     `;
     const paramsPrenda = [
@@ -557,6 +559,7 @@ export async function updateProduct(id: number, formData: FormData) {
       productData.categoria_id,
       productData.marca_id || null, // Use null if marca_id is not provided
       productData.talla_id,
+      productData.estado,
       id
     ];
     await query(sqlPrenda, paramsPrenda);
