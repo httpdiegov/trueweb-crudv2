@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import { fetchProducts } from '@/app/actions/product-actions';
+import { fetchPublicProducts } from '@/app/actions/product-actions';
 import { ProductList } from '@/components/product/product-list';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
@@ -46,7 +46,7 @@ export function CatalogClient({
     const loadProducts = async () => {
       try {
         setIsLoading(true);
-        const data = await fetchProducts();
+        const data = await fetchPublicProducts();
         setProducts(data);
       } catch (error) {
         console.error('Error loading products:', error);
@@ -390,7 +390,7 @@ async function FilteredProductList({
   dropValue: string;
 }) {
   // First, fetch all products
-  const products = await fetchProducts();
+  const products = await fetchPublicProducts();
   let filteredProducts = [...products];
 
   // Apply drop filtering if needed

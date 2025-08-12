@@ -132,7 +132,147 @@ export async function fetchProducts(): Promise<Prenda[]> {
         p.caracteristicas, p.medidas, p.desc_completa, p.stock, p.estado,
         p.categoria_id, c.nom_categoria AS categoria_nombre, c.prefijo AS categoria_prefijo,
         p.marca_id, m.nombre_marca AS marca_nombre,
- p.talla_id, t.nom_talla AS talla_nombre,
+        p.talla_id, t.nom_talla AS talla_nombre,
+        p.created_at, p.updated_at
+      FROM prendas p
+      LEFT JOIN categorias c ON p.categoria_id = c.id
+      LEFT JOIN marcas m ON p.marca_id = m.id
+      LEFT JOIN tallas t ON p.talla_id = t.id
+      ORDER BY p.id DESC
+    `;
+    const productRows = await query(productsSql) as any[];
+
+    if (productRows.length === 0) {
+      return [];
+    }
+
+    const productIds = productRows.map(p => p.id).filter(id => id != null);
+
+    const placeholders = productIds.map(() => '?').join(',');
+    const imagesSqlDynamic = `
+      SELECT id, prenda_id, url
+        FROM imagenes
+        WHERE prenda_id IN (${placeholders})
+        ORDER BY prenda_id, id
+      `;
+    let allImageRows: Imagen[] = await query(imagesSqlDynamic, productIds) as Imagen[];
+    
+    const imagesBwSqlDynamic = `
+        SELECT id, prenda_id, url
+        FROM imagenesBW
+        WHERE prenda_id IN (${placeholders})
+        ORDER BY prenda_id, id
+      `;
+      const allImageBwRows = await query(imagesBwSqlDynamic, productIds) as Imagen[];
+
+    // Procesar imágenes BW
+    const bwImageRegex = /(bw|blanco|blanco-negro|bn|bw-?\d*)\.(jpg|jpeg|png|webp|gif)$/i;
+    
+    // Filtrar imágenes BW de la tabla principal de imágenes
+    const bwImagesFromMain = allImageRows.filter(img => bwImageRegex.test(img.url.toLowerCase()));
+    // Filtrar imágenes a color (no BW)
+    const colorImages = allImageRows.filter(img => !bwImageRegex.test(img.url.toLowerCase()));
+    
+    // Combinar imágenes BW de ambas fuentes
+    const allBwImages = [...bwImagesFromMain, ...allImageBwRows];
+    
+    // Agrupar imágenes por prenda_id
+    const imagesByPrendaId = colorImages.reduce((acc: Record<number, Imagen[]>, image) => {
+      if (!acc[image.prenda_id]) {
+        acc[image.prenda_id] = [];
+      }
+      
+      const product = productRows.find(p => p.id === image.prenda_id);
+      
+      if (product?.sku && product?.drop_name) {
+        const productBase = product.sku.split('-')[0];
+        const bwImageNumber = image.url.match(/(\d+)\.(jpg|jpeg|png|webp|gif)$/i)?.[1] || '01';
+        
+        // Crear la nueva URL en el formato correcto solo para imágenes BW
+        if (bwImageNumber) {
+          const imageUrl = `https://truevintageperu.com/vtg/${product.drop_name}/${productBase}/BW/${product.sku}/${product.sku}-bw${bwImageNumber}.png`;
+          image.url = normalizeImageUrl(imageUrl);
+        }
+      }
+      
+      acc[image.prenda_id].push(image);
+      return acc;
+    }, {} as Record<number, Imagen[]>);
+    
+    // Si no hay imágenes BW para una prenda, crear una ruta por defecto
+    productRows.forEach(product => {
+      if (!allBwImages.find(img => img.prenda_id === product.id)) {
+        const productCode = product.sku; // Ej: TRK-203
+        const productBase = productCode.split('-')[0]; // Ej: TRK
+        
+        const defaultBwImage = {
+          id: 1000000 + product.id, // ID alto para evitar colisiones
+          prenda_id: product.id,
+          url: normalizeImageUrl(`https://truevintageperu.com/vtg/${product.drop_name}/${productBase}/BW/${productCode}/${productCode}-bw1.png`)
+        };
+        
+        allBwImages.push(defaultBwImage);
+      }
+    });
+
+    // Agrupar imágenes BW por prenda_id
+    const bwImagesByPrendaId = allBwImages.reduce((acc: Record<number, Imagen[]>, image) => {
+      if (!acc[image.prenda_id]) {
+        acc[image.prenda_id] = [];
+      }
+      acc[image.prenda_id].push(image);
+      return acc;
+    }, {} as Record<number, Imagen[]>);
+
+    return productRows.map((row: any) => {
+      const rawImagesForPrenda = imagesByPrendaId[Number(row.id)] || [];
+      const bwImageRegex = /-bw\d{2,}\.(jpg|jpeg|png|webp|gif)$/i;
+      
+      const bwImages = rawImagesForPrenda.filter((img: Imagen) => bwImageRegex.test(img.url));
+      const colorImages = rawImagesForPrenda.filter((img: Imagen) => !bwImageRegex.test(img.url));
+      
+      const sortedColorImages = sortProductImages(colorImages);
+      const sortedBwImages = sortProductImages(bwImages);
+
+      return {
+        id: Number(row.id),
+        drop_name: row.drop_name,
+        sku: row.sku,
+        nombre_prenda: row.nombre_prenda,
+        precio: parseFloat(row.precio),
+        caracteristicas: row.caracteristicas,
+        medidas: row.medidas,
+        desc_completa: row.desc_completa,
+        stock: parseInt(row.stock, 10),
+        categoria_id: Number(row.categoria_id),
+        talla_id: Number(row.talla_id),
+        marca_id: row.marca_id ? Number(row.marca_id) : null,
+        marca_nombre: row.marca_nombre || null,
+        categoria_nombre: row.categoria_nombre,
+        categoria_prefijo: row.categoria_prefijo,
+        talla_nombre: row.talla_nombre,
+        imagenes: sortedColorImages,
+        imagenes_bw: sortedBwImages.map(img => ({ ...img, url: img.url.startsWith('bw_') ? img.url.substring(3) : img.url })),
+        created_at: row.created_at,
+        updated_at: row.updated_at,
+        estado: Number(row.estado)
+      };
+    });
+  } catch (error) {
+    console.error("Error fetching products:", error);
+    return [];
+  }
+}
+
+export async function fetchPublicProducts(): Promise<Prenda[]> {
+  try {
+    const productsSql = `
+      SELECT DISTINCT
+        p.id, p.drop_name, p.sku, p.nombre_prenda, p.precio,
+        p.caracteristicas, p.medidas, p.desc_completa, p.stock, p.estado,
+        p.categoria_id, c.nom_categoria AS categoria_nombre, c.prefijo AS categoria_prefijo,
+        p.marca_id, m.nombre_marca AS marca_nombre,
+        p.talla_id, t.nom_talla AS talla_nombre,
         p.created_at, p.updated_at
       FROM prendas p
       LEFT JOIN categorias c ON p.categoria_id = c.id
@@ -225,16 +365,15 @@ export async function fetchProducts(): Promise<Prenda[]> {
       return acc;
     }, {} as Record<number, Imagen[]>);
 
-    return productRows.map(row => {
+    return productRows.map((row: any) => {
       const rawImagesForPrenda = imagesByPrendaId[Number(row.id)] || [];
       const bwImageRegex = /-bw\d{2,}\.(jpg|jpeg|png|webp|gif)$/i;
       
-      const bwImages = rawImagesForPrenda.filter(img => bwImageRegex.test(img.url));
-      const colorImages = rawImagesForPrenda.filter(img => !bwImageRegex.test(img.url));
+      const bwImages = rawImagesForPrenda.filter((img: Imagen) => bwImageRegex.test(img.url));
+      const colorImages = rawImagesForPrenda.filter((img: Imagen) => !bwImageRegex.test(img.url));
       
       const sortedColorImages = sortProductImages(colorImages);
       const sortedBwImages = sortProductImages(bwImages);
-
 
       return {
         id: Number(row.id),
@@ -260,9 +399,8 @@ export async function fetchProducts(): Promise<Prenda[]> {
         estado: Number(row.estado)
       };
     });
-  }
-   catch (error) {
-    console.error("Error fetching products:", error);
+  } catch (error) {
+    console.error("Error fetching public products:", error);
     return [];
   }
 }
