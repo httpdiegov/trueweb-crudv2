@@ -128,7 +128,7 @@ export async function fetchProducts(): Promise<Prenda[]> {
     const productsSql = `
       SELECT DISTINCT
         p.id, p.drop_name, p.sku, p.nombre_prenda, p.precio,
-        p.caracteristicas, p.medidas, p.desc_completa, p.stock,
+        p.caracteristicas, p.medidas, p.desc_completa, p.stock, p.estado,
         p.categoria_id, c.nom_categoria AS categoria_nombre, c.prefijo AS categoria_prefijo,
         p.marca_id, m.nombre_marca AS marca_nombre,
  p.talla_id, t.nom_talla AS talla_nombre,
@@ -255,7 +255,7 @@ export async function fetchProducts(): Promise<Prenda[]> {
         imagenes_bw: sortedBwImages.map(img => ({ ...img, url: img.url.startsWith('bw_') ? img.url.substring(3) : img.url })),
         created_at: row.created_at,
         updated_at: row.updated_at,
-        estado: row.estado
+        estado: Number(row.estado)
       };
     });
   }
@@ -274,7 +274,7 @@ export async function fetchProductById(id: string | number): Promise<Prenda | un
     let productSql = `
       SELECT DISTINCT
         p.id, p.drop_name, p.sku, p.nombre_prenda, p.precio,
-        p.caracteristicas, p.medidas, p.desc_completa, p.stock,
+        p.caracteristicas, p.medidas, p.desc_completa, p.stock, p.estado,
         p.categoria_id, c.nom_categoria AS categoria_nombre, c.prefijo AS categoria_prefijo,
         p.marca_id, m.nombre_marca AS marca_nombre,
         p.talla_id, t.nom_talla AS talla_nombre,
@@ -377,7 +377,7 @@ export async function fetchProductById(id: string | number): Promise<Prenda | un
       imagenes_bw: sortedBwImages.map(img => ({ ...img, url: img.url.startsWith('bw_') ? img.url.substring(3) : img.url })),
       created_at: row.created_at,
       updated_at: row.updated_at,
-      estado: row.estado
+      estado: Number(row.estado)
     };
     return prenda;
 
@@ -825,7 +825,7 @@ export async function fetchAllProducts(): Promise<Prenda[]> {
     const productsSql = `
       SELECT DISTINCT
         p.id, p.drop_name, p.sku, p.nombre_prenda, p.precio,
-        p.caracteristicas, p.medidas, p.desc_completa, p.stock,
+        p.caracteristicas, p.medidas, p.desc_completa, p.stock, p.estado,
         p.categoria_id, c.nom_categoria AS categoria_nombre, c.prefijo AS categoria_prefijo,
         p.marca_id, m.nombre_marca AS marca_nombre,
         p.talla_id, t.nom_talla AS talla_nombre,
@@ -920,9 +920,35 @@ export async function fetchAllProducts(): Promise<Prenda[]> {
     console.log('All product codes:', productsWithImages.map(p => p.codigo).filter(Boolean));
     
     // Return the products with their associated images
-    return productsWithImages;
+    return productsWithImages.map(product => ({
+      ...product,
+      estado: Number(product.estado)
+    }));
   } catch (error) {
     console.error('Error al obtener todos los productos:', error);
     return [];
+  }
+}
+
+export async function setAllProductsVisible(): Promise<{ success: boolean; message: string; affectedRows?: number }> {
+  try {
+    // Actualizar el estado de todas las prendas a visible (estado = 1)
+    const updateSql = 'UPDATE prendas SET estado = 1';
+    const result = await query(updateSql) as any;
+    
+    // Revalidar la página de administración para reflejar los cambios
+    revalidatePath('/admin');
+    
+    return {
+      success: true,
+      message: `Se han actualizado ${result.affectedRows || 0} productos a estado visible.`,
+      affectedRows: result.affectedRows || 0
+    };
+  } catch (error) {
+    console.error('Error al actualizar el estado de los productos:', error);
+    return {
+      success: false,
+      message: 'Error al actualizar el estado de los productos.'
+    };
   }
 }

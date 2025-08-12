@@ -12,24 +12,68 @@ import {
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import type { Prenda } from '@/types';
-import { Edit3, PlusCircle } from 'lucide-react';
+import { Edit3, PlusCircle, Eye } from 'lucide-react';
 import { DeleteProductDialog } from './delete-product-dialog';
-import { deleteProduct } from '@/app/actions/product-actions';
+import { deleteProduct, setAllProductsVisible } from '@/app/actions/product-actions';
 import { Badge } from '@/components/ui/badge';
+import { useToast } from '@/hooks/use-toast';
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 interface ProductTableProps {
   prendas: Prenda[];
 }
 
 export function ProductTable({ prendas }: ProductTableProps) {
+  const { toast } = useToast();
+  const router = useRouter();
+  const [isSettingVisible, setIsSettingVisible] = useState(false);
   
   const handleDeleteProduct = async (id: number) => {
     return deleteProduct(id);
   };
+  
+  const handleSetAllVisible = async () => {
+    setIsSettingVisible(true);
+    try {
+      const result = await setAllProductsVisible();
+      
+      if (result.success) {
+        toast({
+          title: 'Éxito',
+          description: result.message,
+        });
+        router.refresh(); // Refrescar la página para mostrar los cambios
+      } else {
+        toast({
+          title: 'Error',
+          description: result.message,
+          variant: 'destructive',
+        });
+      }
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Error inesperado al actualizar los productos.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsSettingVisible(false);
+    }
+  };
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-end mb-4">
+      <div className="flex justify-end gap-2 mb-4">
+        <Button 
+          onClick={handleSetAllVisible}
+          disabled={isSettingVisible}
+          variant="outline"
+          className="bg-green-50 hover:bg-green-100 text-green-700 border-green-200"
+        >
+          <Eye className="mr-2 h-5 w-5" />
+          {isSettingVisible ? 'Actualizando...' : 'Hacer Todas Visibles'}
+        </Button>
         <Button asChild>
           <Link href="/admin/products/new">
             <PlusCircle className="mr-2 h-5 w-5" />
