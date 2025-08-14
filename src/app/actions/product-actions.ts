@@ -448,21 +448,42 @@ export async function fetchProductById(id: string | number): Promise<Prenda | un
       FROM imagenes
       WHERE prenda_id = ?
       ORDER BY id 
-    `; // Ordering by URL pattern is more reliable here too.
+    `;
+    
+    const imagesBwSql = `
+      SELECT id, prenda_id, url
+      FROM imagenesBW
+      WHERE prenda_id = ?
+      ORDER BY id 
+    `;
+    
     const prendaId = rows[0].id;
-    const allImageRowsForPrenda = await query(imagesSql, [prendaId]) as Imagen[];
+    console.log(`Consultando imágenes para prenda ID: ${prendaId}`);
+    
+    // Consultar ambas tablas en paralelo
+    const [allImageRowsForPrenda, allBwImageRowsForPrenda] = await Promise.all([
+      query(imagesSql, [prendaId]) as Promise<Imagen[]>,
+      query(imagesBwSql, [prendaId]) as Promise<Imagen[]>
+    ]);
+    
+    console.log(`Imágenes encontradas en tabla imagenes:`, allImageRowsForPrenda);
+    console.log(`Imágenes encontradas en tabla imagenesBW:`, allBwImageRowsForPrenda);
 
-    // Expresión regular para detectar imágenes BW
+    // Expresión regular para detectar imágenes BW en la tabla principal
     const bwImageRegex = /(bw|blanco|blanco-negro|bn|bw-?\d*)\.(jpg|jpeg|png|webp|gif)$/i;
     
-    // Filtrar imágenes BW
-    const bwImages = allImageRowsForPrenda.filter(img => {
+    // Filtrar imágenes BW de la tabla principal
+    const bwImagesFromMain = allImageRowsForPrenda.filter(img => {
       const isBw = bwImageRegex.test(img.url.toLowerCase());
-      console.log(`Imagen: ${img.url}, ¿es BW? ${isBw}`);
+      console.log(`Imagen en tabla principal: ${img.url}, ¿es BW? ${isBw}`);
       return isBw;
     });
     
-    // El resto son imágenes a color
+    // Combinar imágenes BW de ambas fuentes
+    const bwImages = [...bwImagesFromMain, ...allBwImageRowsForPrenda];
+    console.log(`Total imágenes BW combinadas:`, bwImages);
+    
+    // El resto son imágenes a color (solo de la tabla principal)
     const colorImages = allImageRowsForPrenda.filter(img => !bwImageRegex.test(img.url.toLowerCase()));
     
     // Si no hay imágenes BW, usar las imágenes BW de la carpeta /BW/
@@ -1083,6 +1104,171 @@ export async function setAllProductsVisible(): Promise<{ success: boolean; messa
     return {
       success: true,
       message: `Se han actualizado ${result.affectedRows || 0} productos a estado visible.`,
+      affectedRows: result.affectedRows || 0
+    };
+  } catch (error) {
+    console.error('Error al actualizar el estado de los productos:', error);
+    return {
+      success: false,
+      message: 'Error al actualizar el estado de los productos.'
+    };
+  }
+}
+
+// Función para eliminar una imagen B&N específica
+export async function deleteBwImage(imageId: number): Promise<{ success: boolean; message: string }> {
+  try {
+    console.log(`Intentando eliminar imagen B&N con ID: ${imageId}`);
+    
+    // Primero verificar si la imagen existe
+    const checkResult = await query('SELECT id, prenda_id, url FROM imagenesBW WHERE id = ?', [imageId]) as any[];
+    console.log(`Resultado de verificación:`, checkResult);
+    
+    if (checkResult.length === 0) {
+      console.log(`No se encontró imagen B&N con ID ${imageId} en la tabla imagenesBW`);
+      return {
+        success: false,
+        message: `No se encontró la imagen con ID ${imageId} para eliminar.`
+      };
+    }
+    
+    // Eliminar la imagen de la tabla imagenesBW
+    const result = await query('DELETE FROM imagenesBW WHERE id = ?', [imageId]) as any;
+    console.log(`Resultado de eliminación:`, result);
+    
+    if (result.affectedRows === 1) {
+      console.log(`Imagen B&N con ID ${imageId} eliminada exitosamente`);
+      // Revalidar las páginas para reflejar los cambios
+      revalidatePath('/admin');
+      revalidatePath('/');
+      
+      return {
+        success: true,
+        message: 'Imagen B&N eliminada exitosamente.'
+      };
+    } else {
+      console.log(`No se pudo eliminar la imagen B&N con ID ${imageId}`);
+      return {
+        success: false,
+        message: `No se encontró la imagen con ID ${imageId} para eliminar.`
+      };
+    }
+  } catch (error) {
+    console.error('Error al eliminar la imagen B&N:', error);
+    return {
+      success: false,
+      message: `Error al eliminar la imagen B&N: ${error instanceof Error ? error.message : 'Error desconocido'}`
+    };
+  }
+}
+
+// Función para eliminar múltiples imágenes B&N
+export async function deleteMultipleBwImages(imageIds: number[]): Promise<{ success: boolean; message: string; deletedCount?: number }> {
+  try {
+    if (imageIds.length === 0) {
+      return {
+        success: false,
+        message: 'No se han especificado imágenes para eliminar.'
+      };
+    }
+
+    // Crear placeholders para la consulta SQL
+    const placeholders = imageIds.map(() => '?').join(',');
+    const deleteSql = `DELETE FROM imagenesBW WHERE id IN (${placeholders})`;
+    
+    const result = await query(deleteSql, imageIds) as any;
+    
+    // Revalidar las páginas para reflejar los cambios
+    revalidatePath('/admin');
+    revalidatePath('/');
+    
+    return {
+      success: true,
+      message: `Se han eliminado ${result.affectedRows || 0} imágenes B&N.`,
+      deletedCount: result.affectedRows || 0
+    };
+  } catch (error) {
+    console.error('Error al eliminar las imágenes B&N:', error);
+    return {
+      success: false,
+      message: 'Error al eliminar las imágenes B&N.'
+    };
+  }
+}
+
+// Función para actualizar el stock de múltiples productos
+export async function updateMultipleProductsStock(productIds: number[], newStock: number): Promise<{ success: boolean; message: string; affectedRows?: number }> {
+  try {
+    if (productIds.length === 0) {
+      return {
+        success: false,
+        message: 'No se han seleccionado productos para actualizar.'
+      };
+    }
+
+    if (newStock < 0) {
+      return {
+        success: false,
+        message: 'El stock no puede ser negativo.'
+      };
+    }
+
+    // Crear placeholders para la consulta SQL
+    const placeholders = productIds.map(() => '?').join(',');
+    const updateSql = `UPDATE prendas SET stock = ? WHERE id IN (${placeholders})`;
+    const params = [newStock, ...productIds];
+    
+    const result = await query(updateSql, params) as any;
+    
+    // Revalidar la página de administración para reflejar los cambios
+    revalidatePath('/admin');
+    
+    return {
+      success: true,
+      message: `Se ha actualizado el stock de ${result.affectedRows || 0} productos a ${newStock}.`,
+      affectedRows: result.affectedRows || 0
+    };
+  } catch (error) {
+    console.error('Error al actualizar el stock de los productos:', error);
+    return {
+      success: false,
+      message: 'Error al actualizar el stock de los productos.'
+    };
+  }
+}
+
+// Función para actualizar el estado de múltiples productos
+export async function updateMultipleProductsStatus(productIds: number[], newStatus: number): Promise<{ success: boolean; message: string; affectedRows?: number }> {
+  try {
+    if (productIds.length === 0) {
+      return {
+        success: false,
+        message: 'No se han seleccionado productos para actualizar.'
+      };
+    }
+
+    if (newStatus !== 0 && newStatus !== 1) {
+      return {
+        success: false,
+        message: 'El estado debe ser 0 (Oculto) o 1 (Visible).'
+      };
+    }
+
+    // Crear placeholders para la consulta SQL
+    const placeholders = productIds.map(() => '?').join(',');
+    const updateSql = `UPDATE prendas SET estado = ? WHERE id IN (${placeholders})`;
+    const params = [newStatus, ...productIds];
+    
+    const result = await query(updateSql, params) as any;
+    
+    // Revalidar la página de administración para reflejar los cambios
+    revalidatePath('/admin');
+    
+    const statusText = newStatus === 1 ? 'Visible' : 'Oculto';
+    
+    return {
+      success: true,
+      message: `Se ha actualizado el estado de ${result.affectedRows || 0} productos a ${statusText}.`,
       affectedRows: result.affectedRows || 0
     };
   } catch (error) {

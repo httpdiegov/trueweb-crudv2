@@ -74,6 +74,10 @@ export function ProductForm({ initialData, onSubmitAction, isEditing }: ProductF
   const [newColorImageFiles, setNewColorImageFiles] = useState<ImageFileWithPreview[]>([]);
   const [newBwImageFiles, setNewBwImageFiles] = useState<ImageFileWithPreview[]>([]);
   const [isGeneratingSku, setIsGeneratingSku] = useState(false);
+  
+  // State for managing B&W images marked for deletion
+  const [bwImagesToDelete, setBwImagesToDelete] = useState<number[]>([]);
+  const [deletingBwImages, setDeletingBwImages] = useState<number[]>([]);
 
   useEffect(() => {
     async function loadDropdownData() {
@@ -296,6 +300,50 @@ export function ProductForm({ initialData, onSubmitAction, isEditing }: ProductF
       newArr[swapIndex] = item;
       return newArr;
     });
+  };
+
+  // Función para marcar una imagen B&N existente para eliminación
+  const markBwImageForDeletion = async (imageId: number) => {
+    setDeletingBwImages(prev => [...prev, imageId]);
+    
+    try {
+      const { deleteBwImage } = await import('@/app/actions/product-actions');
+      const result = await deleteBwImage(imageId);
+      
+      if (result.success) {
+        // Remover la imagen de currentBwImages
+        setCurrentBwImages(prev => prev.filter(img => img.id !== imageId));
+        toast({
+          title: 'Imagen eliminada',
+          description: result.message,
+        });
+      } else {
+        toast({
+          title: 'Error',
+          description: result.message,
+          variant: 'destructive',
+        });
+      }
+    } catch (error) {
+      console.error('Error al eliminar imagen B&N:', error);
+      toast({
+        title: 'Error',
+        description: 'Error al eliminar la imagen B&N.',
+        variant: 'destructive',
+      });
+    } finally {
+      setDeletingBwImages(prev => prev.filter(id => id !== imageId));
+    }
+  };
+
+  // Función para restaurar una imagen B&N marcada para eliminación
+  const restoreBwImage = (imageId: number) => {
+    setBwImagesToDelete(prev => prev.filter(id => id !== imageId));
+  };
+
+  // Función para deshacer todas las eliminaciones marcadas
+  const undoAllBwDeletions = () => {
+    setBwImagesToDelete([]);
   };
 
 
@@ -740,14 +788,94 @@ export function ProductForm({ initialData, onSubmitAction, isEditing }: ProductF
               {isEditing && currentBwImages.length > 0 && newBwImageFiles.length === 0 && (
                 <div className="mb-4">
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
-                        {currentBwImages.map(img => (
-                            <div key={img.id} className="relative aspect-[3/4] border rounded-md overflow-hidden">
-                                <NextImage src={img.url} alt={`Imagen B&N actual ${img.id}`} fill objectFit="cover" />
+                        {currentBwImages.map(img => {
+                          const isMarkedForDeletion = bwImagesToDelete.includes(img.id);
+                          const isDeleting = deletingBwImages.includes(img.id);
+                          
+                          return (
+                            <div key={img.id} className={`relative group aspect-[3/4] border rounded-md overflow-hidden transition-opacity ${
+                              isMarkedForDeletion ? 'opacity-50 border-red-300' : 'border-border'
+                            }`}>
+                                <NextImage 
+                                  src={img.url} 
+                                  alt={`Imagen B&N actual ${img.id}`} 
+                                  fill 
+                                  objectFit="cover" 
+                                  className={isMarkedForDeletion ? 'grayscale' : ''}
+                                />
+                                
+                                {/* Overlay para imágenes marcadas para eliminación */}
+                                {isMarkedForDeletion && (
+                                  <div className="absolute inset-0 bg-red-500/20 flex items-center justify-center">
+                                    <span className="text-red-600 font-semibold text-xs bg-white/90 px-2 py-1 rounded">
+                                      Marcada para eliminar
+                                    </span>
+                                  </div>
+                                )}
+                                
+                                {/* Botones de acción */}
+                                <div className="absolute top-1 right-1 flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                  {!isMarkedForDeletion ? (
+                                    <Button 
+                                      type="button" 
+                                      size="icon" 
+                                      variant="destructive" 
+                                      className="h-6 w-6" 
+                                      onClick={() => markBwImageForDeletion(img.id)}
+                                      disabled={isDeleting}
+                                    >
+                                      {isDeleting ? (
+                                        <Loader2 className="h-3 w-3 animate-spin" />
+                                      ) : (
+                                        <X className="h-3 w-3" />
+                                      )}
+                                    </Button>
+                                  ) : (
+                                    <Button 
+                                      type="button" 
+                                      size="icon" 
+                                      variant="secondary" 
+                                      className="h-6 w-6" 
+                                      onClick={() => restoreBwImage(img.id)}
+                                    >
+                                      <ArrowUp className="h-3 w-3" />
+                                    </Button>
+                                  )}
+                                </div>
+                                
+                                {/* Indicador de carga */}
+                                {isDeleting && (
+                                  <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                                    <Loader2 className="h-6 w-6 text-white animate-spin" />
+                                  </div>
+                                )}
                             </div>
-                        ))}
+                          );
+                        })}
                     </div>
+                    
+                    {/* Botón para deshacer todas las eliminaciones */}
+                    {bwImagesToDelete.length > 0 && (
+                      <div className="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm text-yellow-800">
+                            {bwImagesToDelete.length} imagen{bwImagesToDelete.length > 1 ? 'es' : ''} marcada{bwImagesToDelete.length > 1 ? 's' : ''} para eliminar
+                          </span>
+                          <Button 
+                            type="button" 
+                            size="sm" 
+                            variant="outline" 
+                            onClick={undoAllBwDeletions}
+                            className="text-yellow-800 border-yellow-300 hover:bg-yellow-100"
+                          >
+                            Deshacer todo
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+                    
                     <p className="text-xs text-muted-foreground pt-1">
-                        Para reemplazar estas imágenes B&N, selecciona nuevos archivos abajo.
+                        Haz clic en el botón X para eliminar imágenes individuales, o selecciona nuevos archivos abajo para reemplazar todas.
                     </p>
                 </div>
               )}

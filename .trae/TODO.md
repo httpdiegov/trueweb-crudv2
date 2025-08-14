@@ -1,8 +1,10 @@
 # TODO:
 
-- [x] 1: Crear función generateNextSku en product-actions.ts que obtenga el prefijo de categoría y genere el siguiente SKU (priority: High)
-- [x] 2: Modificar product-form.tsx para hacer el campo SKU readonly y agregar useEffect para actualización automática (priority: High)
-- [x] 4: Crear función setAllProductsVisible en product-actions.ts para actualizar estado de todas las prendas a visible (priority: High)
-- [x] 5: Modificar product-table.tsx para agregar botón 'Hacer Todas Visibles' junto al botón Añadir Producto (priority: High)
-- [x] 3: Probar la funcionalidad de generación automática de SKU (priority: Medium)
-- [x] 6: Probar la funcionalidad del botón para hacer todas las prendas visibles (priority: Medium)
+- [x] 1: Crear función deleteBwImage en product-actions.ts para eliminar imágenes B&N específicas (priority: High)
+- [x] 2: Modificar product-form.tsx para añadir botones de eliminación en imágenes B&N existentes (priority: High)
+- [x] 3: Implementar estado local para manejar imágenes B&N marcadas para eliminación (priority: High)
+- [x] 6: Corregir función fetchProductById para consultar tabla imagenesBW correctamente (priority: High)
+- [x] 4: Actualizar la lógica de envío del formulario para procesar eliminaciones de imágenes B&N (priority: Medium)
+- [x] 5: Añadir feedback visual para imágenes marcadas para eliminación (priority: Medium)
+- [x] 7: Añadir logging detallado a deleteBwImage para debugging (priority: Medium)
+- [x] 8: Verificar que el typecheck pase sin errores (priority: Low)
