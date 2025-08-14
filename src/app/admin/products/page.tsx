@@ -1,8 +1,11 @@
 import { fetchProducts } from '@/app/actions/product-actions';
-import { ProductTable } from '@/components/admin/product-table';
+import { ProductsPageClient } from '@/components/admin/products-page-client';
+import type { Prenda } from '@/types';
+
+
 
 export default async function ProductsPage() {
   const prendas = await fetchProducts();
 
-  return <ProductTable prendas={prendas} />;
+  return <ProductsPageClient prendas={prendas} />;
 }
