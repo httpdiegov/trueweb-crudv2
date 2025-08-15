@@ -5,7 +5,8 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import { Truck, PackageCheck, Tag, Ruler, MessageCircle, Instagram } from 'lucide-react';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { Truck, PackageCheck, Tag, Ruler, MessageCircle, Instagram, ChevronDown } from 'lucide-react';
 import { AddToCartWrapper } from '@/components/product/add-to-cart-wrapper';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
@@ -121,6 +122,26 @@ Enlace directo: ${productUrl}`
                   </div>
                 </div>
               )}
+              
+              {/* Guía de tallas */}
+              <Collapsible className="mb-4">
+                <CollapsibleTrigger className="flex items-center justify-between w-full p-3 text-left bg-muted/50 hover:bg-muted rounded-md transition-colors">
+                  <span className="text-sm font-medium">Guía de tallas</span>
+                  <ChevronDown className="h-4 w-4 transition-transform duration-200 data-[state=open]:rotate-180" />
+                </CollapsibleTrigger>
+                <CollapsibleContent className="px-3 pb-3">
+                  <div className="text-sm text-muted-foreground space-y-2 mt-2">
+                    <p className="font-medium text-foreground">¿Cómo elegir tu talla?</p>
+                    <p>• Las prendas vintage pueden tener tallaje diferente al actual</p>
+                    <p>• Siempre revisa las medidas específicas de cada prenda</p>
+                    <p>• Compara con una prenda similar que tengas en casa</p>
+                    <p>• En caso de duda, contáctanos por WhatsApp o Instagram</p>
+                    <div className="mt-3 p-2 bg-amber-50 border border-amber-200 rounded text-amber-800">
+                      <p className="text-xs font-medium">💡 Tip: Las medidas están tomadas con la prenda extendida sobre una superficie plana.</p>
+                    </div>
+                  </div>
+                </CollapsibleContent>
+              </Collapsible>
               <div className="mt-4 text-sm text-muted-foreground space-y-1">
                 <p>➤ Revisar bien fotos y medidas antes de comprar.</p>
                 <p>➤ Las prendas son lavadas antes de su venta.</p>

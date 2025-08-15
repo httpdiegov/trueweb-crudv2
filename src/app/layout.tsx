@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 import { ToastProvider } from '@/components/providers/toast-provider';
 import { ThemeProvider } from '@/components/theme/theme-provider';
+import Script from 'next/script';
 
 export const metadata: Metadata = {
   title: 'True Vintage',
@@ -22,6 +23,10 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // Control: cargar Pixel solo en producción o cuando esté habilitado explícitamente
+  const pixelId = process.env.NEXT_PUBLIC_FB_PIXEL_ID ?? '1311704343823236';
+  const enablePixel = process.env.NODE_ENV === 'production' || process.env.NEXT_PUBLIC_ENABLE_FB_PIXEL === 'true';
+
   return (
     <html lang="es" suppressHydrationWarning>
       <head>
@@ -59,8 +64,33 @@ export default function RootLayout({
             `,
           }}
         />
+
+        {/* Meta Pixel (Facebook) */}
+        {enablePixel && (
+          <Script id="fb-pixel" strategy="afterInteractive">
+            {`!function(f,b,e,v,n,t,s)
+            {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+            n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+            if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+            n.queue=[];t=b.createElement(e);t.async=!0;
+            t.src=v;s=b.getElementsByTagName(e)[0];
+            s.parentNode.insertBefore(t,s)}(window, document,'script',
+            'https://connect.facebook.net/en_US/fbevents.js');
+            fbq('init', '${pixelId}');
+            fbq('track', 'PageView');`}
+          </Script>
+        )}
       </head>
       <body className="font-body antialiased min-h-screen flex flex-col bg-background text-foreground transition-colors duration-200">
+        {/* Meta Pixel (noscript) */}
+        {enablePixel && (
+          <noscript
+            dangerouslySetInnerHTML={{
+              __html:
+                `<img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id=${pixelId}&ev=PageView&noscript=1" />`,
+            }}
+          />
+        )}
         <ThemeProvider>
           <ToastProvider>
             {children}

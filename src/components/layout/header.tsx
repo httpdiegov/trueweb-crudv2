@@ -1,7 +1,8 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { useState, useEffect } from 'react';
-import { Instagram, Search } from 'lucide-react';
+import { Instagram, Search, ShoppingCart } from 'lucide-react';
+import { FaWhatsapp } from 'react-icons/fa';
 import { Button } from '@/components/ui/button';
 import { CartButton } from '@/components/cart/cart-button';
 import { AdminLoginDialog } from '@/components/auth/admin-login-dialog';
@@ -32,6 +33,15 @@ export function Header() {
               <Instagram className="h-5 w-5" />
             </Link>
           </Button>
+          <Link
+            href="https://wa.me/51940866278"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <FaWhatsapp className="h-5 w-5" />
+          </Link>
+
 
           <CartButton />
           <ThemeToggle />
