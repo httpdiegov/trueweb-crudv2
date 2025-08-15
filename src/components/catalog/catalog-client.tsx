@@ -133,12 +133,8 @@ export function CatalogClient({
           return a.precio - b.precio;
         case 'price-desc':
           return b.precio - a.precio;
-        case 'size-asc':
-          return (a.talla_nombre || '').localeCompare(b.talla_nombre || '');
-        case 'size-desc':
-          return (b.talla_nombre || '').localeCompare(a.talla_nombre || '');
         default:
-          return 0;
+          return 0; // Orden predeterminado (sin ordenamiento específico)
       }
     });
     
@@ -353,6 +349,17 @@ export function CatalogClient({
                 <div className="py-1" role="menu" aria-orientation="vertical">
                   <button
                     onClick={() => {
+                      setSortOption('');
+                      setIsSortOpen(false);
+                    }}
+                    className={`w-full text-left px-4 py-2 text-sm flex items-center gap-2 hover:bg-gray-100 dark:hover:bg-gray-700 ${sortOption === '' ? 'bg-gray-100 dark:bg-gray-700' : ''}`}
+                    role="menuitem"
+                  >
+                    <ArrowUpDown className="h-4 w-4" />
+                    Predeterminado
+                  </button>
+                  <button
+                    onClick={() => {
                       setSortOption('price-asc');
                       setIsSortOpen(false);
                     }}
@@ -372,28 +379,6 @@ export function CatalogClient({
                   >
                     <ArrowDown className="h-4 w-4" />
                     Precio: Mayor a menor
-                  </button>
-                  <button
-                    onClick={() => {
-                      setSortOption('size-asc');
-                      setIsSortOpen(false);
-                    }}
-                    className={`w-full text-left px-4 py-2 text-sm flex items-center gap-2 hover:bg-gray-100 dark:hover:bg-gray-700 ${sortOption === 'size-asc' ? 'bg-gray-100 dark:bg-gray-700' : ''}`}
-                    role="menuitem"
-                  >
-                    <ArrowUp className="h-4 w-4" />
-                    Talla: A-Z
-                  </button>
-                  <button
-                    onClick={() => {
-                      setSortOption('size-desc');
-                      setIsSortOpen(false);
-                    }}
-                    className={`w-full text-left px-4 py-2 text-sm flex items-center gap-2 hover:bg-gray-100 dark:hover:bg-gray-700 ${sortOption === 'size-desc' ? 'bg-gray-100 dark:bg-gray-700' : ''}`}
-                    role="menuitem"
-                  >
-                    <ArrowDown className="h-4 w-4" />
-                    Talla: Z-A
                   </button>
                 </div>
               </div>
