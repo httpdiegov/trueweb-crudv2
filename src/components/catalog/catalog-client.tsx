@@ -6,10 +6,11 @@ import { ProductList } from '@/components/product/product-list';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { ProductFilterPopover } from '@/components/product/product-filter-popover';
-import { ArrowDown, ArrowUp, ArrowUpDown, ChevronDown, Sparkles, Filter, X } from 'lucide-react';
+import { ArrowDown, ArrowUp, ArrowUpDown, ChevronDown, Sparkles, Filter, X, Search } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Input } from '@/components/ui/input';
 import type { Categoria, Talla, Prenda } from '@/types';
 
 interface CatalogClientProps {
@@ -40,6 +41,8 @@ export function CatalogClient({
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [selectedSizes, setSelectedSizes] = useState<string[]>([]);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
 
   // Cargar productos al montar el componente
   useEffect(() => {
@@ -82,12 +85,24 @@ export function CatalogClient({
       showNewArrivals, 
       dropValue,
       sortOption,
+      searchTerm,
       totalProducts: products.length
     });
     
-    // 1. Aplicar filtro de categoría si existe
+    // 1. Aplicar filtro de búsqueda si existe
     let filtered = [...products];
     
+    if (searchTerm.trim()) {
+       const searchLower = searchTerm.toLowerCase().trim();
+       filtered = filtered.filter(p => 
+         (p.nombre_prenda && p.nombre_prenda.toLowerCase().includes(searchLower)) ||
+         (p.sku && p.sku.toLowerCase().includes(searchLower)) ||
+         (p.categoria_nombre && p.categoria_nombre.toLowerCase().includes(searchLower))
+       );
+       console.log(`Después de filtrar por búsqueda ("${searchTerm}"):`, filtered.length, 'productos');
+     }
+    
+    // 2. Aplicar filtro de categoría si existe
     if (categoriesParams.length > 0) {
       filtered = filtered.filter(p => 
         p.categoria_nombre && categoriesParams.includes(p.categoria_nombre)
@@ -95,7 +110,7 @@ export function CatalogClient({
       console.log(`Después de filtrar por categoría (${categoriesParams.join(', ')}):`, filtered.length, 'productos');
     }
     
-    // 2. Aplicar filtro de talla si existe
+    // 3. Aplicar filtro de talla si existe
     if (sizesParams.length > 0) {
       filtered = filtered.filter(p => 
         p.talla_nombre && sizesParams.includes(p.talla_nombre)
@@ -103,7 +118,7 @@ export function CatalogClient({
       console.log(`Después de filtrar por talla (${sizesParams.join(', ')}):`, filtered.length, 'productos');
     }
     
-    // 3. Aplicar filtro de nuevos ingresos si está activado
+    // 4. Aplicar filtro de nuevos ingresos si está activado
     if (showNewArrivals && dropValue) {
       const dropProducts = filtered.filter(p => p.drop_name === dropValue);
       const nonDropProducts = filtered.filter(p => p.drop_name !== dropValue);
@@ -111,7 +126,7 @@ export function CatalogClient({
       console.log('Después de filtrar por nuevos ingresos:', filtered.length, 'productos');
     }
 
-    // 4. Aplicar ordenación
+    // 5. Aplicar ordenación
     const sorted = [...filtered].sort((a, b) => {
       switch (sortOption) {
         case 'price-asc':
@@ -129,7 +144,7 @@ export function CatalogClient({
     
     console.log('Productos después de aplicar todos los filtros y ordenación:', sorted.length);
     return sorted;
-  }, [products, categoriesParams, sizesParams, showNewArrivals, dropValue, sortOption]);
+  }, [products, categoriesParams, sizesParams, showNewArrivals, dropValue, sortOption, searchTerm]);
   
   // Handle category toggle
   const toggleCategory = (categoryName: string) => {
@@ -158,6 +173,53 @@ export function CatalogClient({
     <div className="container mx-auto max-w-screen-2xl px-2 py-4 sm:px-4 sm:py-6 md:px-6 md:py-8">
       <div className="flex flex-col md:flex-row justify-end items-start md:items-center mb-6 gap-4">
         <div className="flex items-center gap-2">
+          {/* Icono de búsqueda */}
+          <div className="relative">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="gap-2"
+              onClick={() => setIsSearchOpen(!isSearchOpen)}
+            >
+              <Search className="h-4 w-4" />
+              Buscar
+            </Button>
+            
+            {isSearchOpen && (
+              <div className="absolute right-0 mt-2 w-80 p-4 rounded-md shadow-lg bg-white dark:bg-gray-800 ring-1 ring-black ring-opacity-5 z-50">
+                <div className="space-y-3">
+                  <h4 className="text-sm font-medium text-gray-900 dark:text-white">Buscar productos</h4>
+                  <Input
+                    type="text"
+                    placeholder="Buscar por nombre, SKU o categoría..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="w-full"
+                    autoFocus
+                  />
+                  <div className="flex justify-end gap-2">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        setSearchTerm('');
+                        setIsSearchOpen(false);
+                      }}
+                    >
+                      Limpiar
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setIsSearchOpen(false)}
+                    >
+                      Cerrar
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
           <div className="relative">
             <Button 
               variant="outline" 

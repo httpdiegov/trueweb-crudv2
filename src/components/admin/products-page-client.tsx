@@ -4,7 +4,8 @@ import { ProductTable } from '@/components/admin/product-table';
 import { AdminProductGallery } from '@/components/admin/admin-product-gallery';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Grid, List, Filter } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Grid, List, Filter, Search } from 'lucide-react';
 import { useState, useEffect, useMemo } from 'react';
 import type { Prenda } from '@/types';
 
@@ -17,6 +18,7 @@ export function ProductsPageClient({ prendas }: ProductsPageClientProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [selectedTalla, setSelectedTalla] = useState<string>('todas');
   const [selectedMarca, setSelectedMarca] = useState<string>('todas');
+  const [searchTerm, setSearchTerm] = useState<string>('');
 
   // Cargar preferencia del usuario desde localStorage
   useEffect(() => {
@@ -58,9 +60,13 @@ export function ProductsPageClient({ prendas }: ProductsPageClientProps) {
     return prendas.filter(prenda => {
       const tallaMatch = selectedTalla === 'todas' || prenda.talla_nombre === selectedTalla;
       const marcaMatch = selectedMarca === 'todas' || prenda.marca_nombre === selectedMarca;
-      return tallaMatch && marcaMatch;
+      const searchMatch = searchTerm === '' || 
+        prenda.nombre_prenda.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        prenda.sku.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (prenda.categoria_nombre && prenda.categoria_nombre.toLowerCase().includes(searchTerm.toLowerCase()));
+      return tallaMatch && marcaMatch && searchMatch;
     });
-  }, [prendas, selectedTalla, selectedMarca]);
+  }, [prendas, selectedTalla, selectedMarca, searchTerm]);
 
   if (isLoading) {
     return (
@@ -104,10 +110,23 @@ export function ProductsPageClient({ prendas }: ProductsPageClientProps) {
       <div className="flex flex-col sm:flex-row gap-4 p-4 bg-gray-50 rounded-lg border">
         <div className="flex items-center gap-2">
           <Filter className="h-4 w-4 text-gray-500" />
-          <span className="text-sm font-medium text-gray-700">Filtros:</span>
+          <Search className="h-4 w-4 text-gray-500" />
+          <span className="text-sm font-medium text-gray-700">Filtros y Búsqueda:</span>
         </div>
         
         <div className="flex flex-col sm:flex-row gap-3 flex-1">
+          {/* Campo de búsqueda */}
+          <div className="flex items-center gap-2 min-w-[200px]">
+            <label className="text-sm text-gray-600 whitespace-nowrap">Buscar:</label>
+            <Input
+              type="text"
+              placeholder="Nombre, SKU o categoría..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full"
+            />
+          </div>
+          
           {/* Filtro por Talla */}
           <div className="flex items-center gap-2 min-w-[150px]">
             <label className="text-sm text-gray-600 whitespace-nowrap">Talla:</label>
