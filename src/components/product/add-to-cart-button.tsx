@@ -59,6 +59,7 @@ export function AddToCartButton({ product, className }: AddToCartButtonProps) {
       estado: 1,
       categoria_id: 0,
       talla_id: 0,
+      separado: 0,
       // Campos opcionales como undefined (no necesarios para el carrito)
       caracteristicas: undefined,
       medidas: undefined,

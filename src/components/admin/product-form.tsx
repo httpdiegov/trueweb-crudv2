@@ -38,6 +38,7 @@ const productFormSchemaClient = z.object({
   desc_completa: z.string().min(10, { message: 'Descripción completa es requerida (mínimo 10 caracteres).' }),
   drop_name: z.string().optional().nullable(),
   marca_id: z.coerce.number().int().positive({ message: 'Debe seleccionar una marca.' }).optional().nullable(),
+  separado: z.coerce.number().int().min(0).max(1).optional().default(0),
 });
 
 type ProductFormValues = z.infer<typeof productFormSchemaClient>;
@@ -114,6 +115,7 @@ export function ProductForm({ initialData, onSubmitAction, isEditing }: ProductF
         medidas: initialData.medidas || '',
         desc_completa: initialData.desc_completa || '',
         drop_name: initialData.drop_name || '',
+        separado: initialData.separado ?? 0,
       }
     : {
         nombre_prenda: '',
@@ -127,6 +129,7 @@ export function ProductForm({ initialData, onSubmitAction, isEditing }: ProductF
         medidas: '',
         desc_completa: '',
         drop_name: '',
+        separado: 0,
       };
 
   // Initialize form with react-hook-form
@@ -145,6 +148,7 @@ export function ProductForm({ initialData, onSubmitAction, isEditing }: ProductF
       desc_completa: initialData?.desc_completa || '',
       drop_name: initialData?.drop_name || '',
       marca_id: initialData?.marca_id || null,
+      separado: initialData?.separado ?? 0,
     },
     mode: "onChange",
   });
@@ -199,6 +203,7 @@ export function ProductForm({ initialData, onSubmitAction, isEditing }: ProductF
         desc_completa: initialData.desc_completa || '',
         drop_name: initialData.drop_name || '',
         marca_id: initialData.marca_id || null,
+        separado: initialData.separado ?? 0,
       });
       
       // Set current images from initial data
@@ -527,6 +532,30 @@ export function ProductForm({ initialData, onSubmitAction, isEditing }: ProductF
                       <SelectContent>
                         <SelectItem value="1">Visible</SelectItem>
                         <SelectItem value="0">Oculto</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="separado"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Estado de Separación</FormLabel>
+                    <Select
+                      onValueChange={(value) => field.onChange(Number(value))}
+                      value={field.value?.toString()}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Seleccionar estado de separación" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="0">No Separado</SelectItem>
+                        <SelectItem value="1">Separado</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />

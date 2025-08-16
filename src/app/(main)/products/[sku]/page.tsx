@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { PackageCheck, Tag, Ruler, Instagram, ChevronDown } from 'lucide-react';
+import { PackageCheck, Tag, Ruler, Instagram, ChevronDown, MessageCircle } from 'lucide-react';
 import { AddToCartWrapper } from '@/components/product/add-to-cart-wrapper';
 import { WhatsAppBuyButton } from '@/components/product/whatsapp-buy-button';
 import Link from 'next/link';
@@ -105,6 +105,7 @@ Enlace directo: ${productUrl}`
                 <span className="font-medium text-sm">Stock:</span>
                 <span className="text-sm">{prenda.stock > 0 ? `${prenda.stock} unidades` : 'Agotado'}</span>
               </div>
+
             </div>
             
             {(prenda.caracteristicas || prenda.medidas) && <Separator className="my-6" />}
@@ -158,7 +159,7 @@ Enlace directo: ${productUrl}`
               </div>
             </div>
             
-            {prenda.stock > 0 ? (
+            {prenda.stock > 0 && prenda.separado !== 1 ? (
               <>
                 <div className="mt-8 flex flex-col gap-3 md:flex-row">
                   <AddToCartWrapper product={{
@@ -182,12 +183,41 @@ Enlace directo: ${productUrl}`
                       className="text-primary hover:underline font-medium inline-flex items-center gap-1"
                     >
                       <Instagram className="h-3 w-3" />
-                      @truevintage.pe
+                      Instagram
                     </Link>{' '}
                     o al +51 940866278.
                   </p>
                 </div>
               </>
+            ) : prenda.separado === 1 ? (
+              <div className="mt-8 p-4 bg-orange-50 border border-orange-200 rounded-md text-center">
+                <p className="text-orange-700 font-medium">Esta prenda fue separada por otro cliente</p>
+                <p className="text-sm text-orange-600 mt-1">Escribenos al privado para avisarte en caso se libere</p>
+                <p className="text-sm text-orange-600 mt-2">Puedes separar cualquier prenda con solo S/30! Tienes 1 semana para cancelar el pago completo</p>
+                <p className="text-sm text-orange-600 mt-2">Entérate de nuevas prendas en nuestras redes sociales</p>
+                <div className="mt-3 flex flex-col sm:flex-row gap-2 justify-center">
+                  <Button variant="outline" size="sm" asChild>
+                    <Link 
+                      href="https://www.instagram.com/truevintage.pe" 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-1"
+                    >
+                      <Instagram className="h-4 w-4" /> Instagram
+                    </Link>
+                  </Button>
+                  <Button variant="outline" size="sm" asChild>
+                    <Link 
+                      href={whatsappLink}
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-1"
+                    >
+                      <MessageCircle className="h-4 w-4" /> WhatsApp
+                    </Link>
+                  </Button>
+                </div>
+              </div>
             ) : (
               <div className="mt-8 p-4 bg-red-50 border border-red-200 rounded-md text-center">
                 <p className="text-red-700 font-medium">Esta prenda está agotada</p>
@@ -200,7 +230,7 @@ Enlace directo: ${productUrl}`
                       rel="noopener noreferrer"
                       className="flex items-center gap-1 mx-auto"
                     >
-                      <Instagram className="h-4 w-4" /> @truevintage.pe
+                      <Instagram className="h-4 w-4" /> Instagram
                     </Link>
                   </Button>
                 </div>

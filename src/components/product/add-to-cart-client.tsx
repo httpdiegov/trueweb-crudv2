@@ -68,6 +68,7 @@ export function AddToCartClient({ product, className }: AddToCartClientProps) {
       estado: product.estado || 1,
       categoria_id: product.categoria_id || 0,
       talla_id: product.talla_id || 0,
+      separado: product.separado || 0,
       
       // Campos opcionales
       caracteristicas: product.caracteristicas || undefined,

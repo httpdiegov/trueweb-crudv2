@@ -19,6 +19,7 @@ const productBaseSchema = z.object({
   desc_completa: z.string().min(10, { message: 'Descripción completa es requerida (mínimo 10 caracteres).' }),
   drop_name: z.string().optional().nullable().transform(val => val === '' ? null : val),
   estado: z.coerce.number().int().optional().default(1), // Añadido para permitir el campo estado
+  separado: z.coerce.number().int().min(0).max(1).optional().default(0), // 0 = no separado, 1 = separado
 });
 
 const productCreateSchema = productBaseSchema;
@@ -129,7 +130,7 @@ export async function fetchProducts(): Promise<Prenda[]> {
     const productsSql = `
       SELECT DISTINCT
         p.id, p.drop_name, p.sku, p.nombre_prenda, p.precio,
-        p.caracteristicas, p.medidas, p.desc_completa, p.stock, p.estado,
+        p.caracteristicas, p.medidas, p.desc_completa, p.stock, p.estado, p.separado,
         p.categoria_id, c.nom_categoria AS categoria_nombre, c.prefijo AS categoria_prefijo,
         p.marca_id, m.nombre_marca AS marca_nombre,
         p.talla_id, t.nom_talla AS talla_nombre,
@@ -255,7 +256,8 @@ export async function fetchProducts(): Promise<Prenda[]> {
         imagenes_bw: sortedBwImages.map(img => ({ ...img, url: img.url.startsWith('bw_') ? img.url.substring(3) : img.url })),
         created_at: row.created_at,
         updated_at: row.updated_at,
-        estado: Number(row.estado)
+        estado: Number(row.estado),
+        separado: Number(row.separado)
       };
     });
   } catch (error) {
@@ -269,7 +271,7 @@ export async function fetchPublicProducts(): Promise<Prenda[]> {
     const productsSql = `
       SELECT DISTINCT
         p.id, p.drop_name, p.sku, p.nombre_prenda, p.precio,
-        p.caracteristicas, p.medidas, p.desc_completa, p.stock, p.estado,
+        p.caracteristicas, p.medidas, p.desc_completa, p.stock, p.estado, p.separado,
         p.categoria_id, c.nom_categoria AS categoria_nombre, c.prefijo AS categoria_prefijo,
         p.marca_id, m.nombre_marca AS marca_nombre,
         p.talla_id, t.nom_talla AS talla_nombre,
@@ -396,7 +398,8 @@ export async function fetchPublicProducts(): Promise<Prenda[]> {
         imagenes_bw: sortedBwImages.map(img => ({ ...img, url: img.url.startsWith('bw_') ? img.url.substring(3) : img.url })),
         created_at: row.created_at,
         updated_at: row.updated_at,
-        estado: Number(row.estado)
+        estado: Number(row.estado),
+        separado: Number(row.separado)
       };
     });
   } catch (error) {
@@ -414,7 +417,7 @@ export async function fetchProductById(id: string | number): Promise<Prenda | un
     let productSql = `
       SELECT DISTINCT
         p.id, p.drop_name, p.sku, p.nombre_prenda, p.precio,
-        p.caracteristicas, p.medidas, p.desc_completa, p.stock, p.estado,
+        p.caracteristicas, p.medidas, p.desc_completa, p.stock, p.estado, p.separado,
         p.categoria_id, c.nom_categoria AS categoria_nombre, c.prefijo AS categoria_prefijo,
         p.marca_id, m.nombre_marca AS marca_nombre,
         p.talla_id, t.nom_talla AS talla_nombre,
@@ -538,7 +541,8 @@ export async function fetchProductById(id: string | number): Promise<Prenda | un
       imagenes_bw: sortedBwImages.map(img => ({ ...img, url: img.url.startsWith('bw_') ? img.url.substring(3) : img.url })),
       created_at: row.created_at,
       updated_at: row.updated_at,
-      estado: Number(row.estado)
+      estado: Number(row.estado),
+      separado: Number(row.separado)
     };
     return prenda;
 
@@ -588,8 +592,8 @@ export async function createProduct(formData: FormData) {
 
     const sqlPrenda = `
       INSERT INTO prendas (
-        drop_name, sku, nombre_prenda, precio, caracteristicas, medidas, desc_completa, stock, categoria_id, talla_id, marca_id)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        drop_name, sku, nombre_prenda, precio, caracteristicas, medidas, desc_completa, stock, categoria_id, talla_id, marca_id, separado)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
     const paramsPrenda = [
       productData.drop_name,
@@ -603,6 +607,7 @@ export async function createProduct(formData: FormData) {
       productData.categoria_id,
       productData.talla_id,
       productData.marca_id || null, // Use null if marca_id is not provided
+      productData.separado || 0, // Use 0 if separado is not provided
     ];
 
     const resultPrenda = await query(sqlPrenda, paramsPrenda) as any;
@@ -703,7 +708,7 @@ export async function updateProduct(id: number, formData: FormData) {
     const sqlPrenda = `
       UPDATE prendas SET
       drop_name = ?, sku = ?, nombre_prenda = ?, precio = ?, caracteristicas = ?, medidas = ?,
-      desc_completa = ?, stock = ?, categoria_id = ?, marca_id = ?, talla_id = ?, estado = ?
+      desc_completa = ?, stock = ?, categoria_id = ?, marca_id = ?, talla_id = ?, estado = ?, separado = ?
       WHERE id = ?
     `;
     const paramsPrenda = [
@@ -719,6 +724,7 @@ export async function updateProduct(id: number, formData: FormData) {
       productData.marca_id || null, // Use null if marca_id is not provided
       productData.talla_id,
       productData.estado,
+      productData.separado || 0, // Use 0 if separado is not provided
       id
     ];
     await query(sqlPrenda, paramsPrenda);
@@ -979,7 +985,7 @@ export async function fetchAllProducts(): Promise<Prenda[]> {
     const productsSql = `
       SELECT DISTINCT
         p.id, p.drop_name, p.sku, p.nombre_prenda, p.precio,
-        p.caracteristicas, p.medidas, p.desc_completa, p.stock, p.estado,
+        p.caracteristicas, p.medidas, p.desc_completa, p.stock, p.estado, p.separado,
         p.categoria_id, c.nom_categoria AS categoria_nombre, c.prefijo AS categoria_prefijo,
         p.marca_id, m.nombre_marca AS marca_nombre,
         p.talla_id, t.nom_talla AS talla_nombre,

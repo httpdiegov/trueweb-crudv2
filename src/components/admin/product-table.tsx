@@ -14,11 +14,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Badge } from '@/components/ui/badge';
 import type { Prenda } from '@/types';
 import { Edit3, PlusCircle, Eye, Package, ToggleLeft } from 'lucide-react';
 import { DeleteProductDialog } from './delete-product-dialog';
 import { deleteProduct, setAllProductsVisible, updateMultipleProductsStock, updateMultipleProductsStatus } from '@/app/actions/product-actions';
-import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -309,13 +309,14 @@ export function ProductTable({ prendas }: ProductTableProps) {
               <TableHead>Categoría</TableHead>
               <TableHead>Talla</TableHead>
               <TableHead>Estado</TableHead>
+              <TableHead>Separado</TableHead>
               <TableHead className="text-right w-[120px]">Acciones</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {prendas.length === 0 && (
               <TableRow>
-                <TableCell colSpan={9} className="h-24 text-center text-muted-foreground">
+                <TableCell colSpan={10} className="h-24 text-center text-muted-foreground">
                   No hay productos para mostrar.
                 </TableCell>
               </TableRow>
@@ -342,6 +343,11 @@ export function ProductTable({ prendas }: ProductTableProps) {
                 <TableCell>
                   <Badge variant={prenda.estado === 1 ? 'default' : 'destructive'} className={prenda.estado === 1 ? 'bg-green-600 hover:bg-green-700' : ''}>
                     {prenda.estado === 1 ? 'Visible' : 'Oculto'}
+                  </Badge>
+                </TableCell>
+                <TableCell>
+                  <Badge variant={prenda.separado === 1 ? 'default' : 'secondary'} className={prenda.separado === 1 ? 'bg-orange-600 hover:bg-orange-700' : 'bg-gray-500 hover:bg-gray-600'}>
+                    {prenda.separado === 1 ? 'Separado' : 'No Separado'}
                   </Badge>
                 </TableCell>
                 <TableCell className="text-right">

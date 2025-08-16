@@ -5,6 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import type { Prenda } from '@/types';
 import { useState, useEffect } from 'react';
+import { Badge } from '@/components/ui/badge';
 
 interface ProductCardProps {
   prenda: Prenda;
@@ -230,6 +231,13 @@ export function ProductCard({ prenda }: ProductCardProps) {
           <div className="absolute inset-0 flex items-center justify-center bg-black/40">
             <div className="bg-red-600 text-white text-xs sm:text-sm font-bold uppercase tracking-wider px-3 py-1.5 transform -rotate-12 scale-110">
               SOLD OUT
+            </div>
+          </div>
+        )}
+        {prenda.separado === 1 && (
+          <div className="absolute inset-0 flex items-center justify-center bg-black/40">
+            <div className="bg-orange-500 text-white text-xs sm:text-sm font-bold uppercase tracking-wider px-3 py-1.5 transform -rotate-12 scale-110">
+              SEPARADO
             </div>
           </div>
         )}

@@ -35,6 +35,7 @@ export interface Prenda {
   desc_completa: string;
   stock: number;
   estado: number; // 0 = oculto, 1 = visible
+  separado: number; // 0 = no separado, 1 = separado
   categoria_id: number;
   talla_id: number;
   marca_id?: number | null; // Nuevo campo para el ID de la marca
