@@ -30,6 +30,21 @@ const nextConfig: NextConfig = {
     // con la propiedad 'quality' en el componente Image
     // Ejemplo: <Image src="..." quality={90} ... />
   },
+  async redirects() {
+    return [
+      {
+        source: '/nuevo-ingreso', // La URL antigua
+        destination: '/',         // La nueva URL (la página de inicio en este caso)
+        permanent: true,          // Esto establece el código de estado 301
+      },
+      {
+        source: '/marcas-fila',    // La URL antigua
+        destination: '/marcas',   // O a tu página de categorías, si tienes una. Si no, a '/'
+        permanent: true,
+      },
+      // Puedes añadir más redirecciones aquí si encuentras otras URLs antiguas
+    ]
+  },
   async headers() {
     return [
       {
