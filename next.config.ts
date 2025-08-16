@@ -38,6 +38,11 @@ const nextConfig: NextConfig = {
         permanent: true,          // Esto establece el código de estado 301
       },
       {
+        source: '/categoria-producto', // La URL antigua
+        destination: '/',         // La nueva URL (la página de inicio en este caso)
+        permanent: true,          // Esto establece el código de estado 301
+      },
+      {
         source: '/marcas-fila',    // La URL antigua
         destination: '/marcas',   // O a tu página de categorías, si tienes una. Si no, a '/'
         permanent: true,
