@@ -884,7 +884,6 @@ interface ZodShapeIterable extends z.ZodObject<any, any, any, any, any> {
  */
 function normalizeImageUrl(url: string): string {
   if (!url) {
-    console.log('normalizeImageUrl: Received empty URL');
     return url;
   }
   
@@ -894,7 +893,6 @@ function normalizeImageUrl(url: string): string {
     // First, handle the case where the URL might already be normalized
     if (url.includes('-bw01.') || url.includes('-bw02.')) {
       // Already in the correct format, no need to modify
-      console.log(`normalizeImageUrl: URL already normalized: ${url}`);
       return url;
     }
     
@@ -904,7 +902,6 @@ function normalizeImageUrl(url: string): string {
     if (bwMatch) {
       const [_, base, num, ext] = bwMatch;
       const normalized = `${base}0${num}${ext}`;
-      console.log(`normalizeImageUrl: Normalized BW image URL: ${url} -> ${normalized}`);
       return normalized;
     }
     
@@ -914,19 +911,14 @@ function normalizeImageUrl(url: string): string {
       const [_, base, num, ext] = colorMatch;
       const number = parseInt(num, 10);
       const normalized = `${base}${number < 10 ? '0' + number : number}${ext}`;
-      if (normalized !== url) {
-        console.log(`normalizeImageUrl: Normalized color image URL: ${url} -> ${normalized}`);
-      }
       return normalized;
     }
     
     // If we get here, the URL didn't match any of our patterns
-    console.log(`normalizeImageUrl: No normalization needed for URL: ${url}`);
     return url;
     
   } catch (error) {
     console.error('Error in normalizeImageUrl:', error);
-    console.log('Original URL:', originalUrl);
     return originalUrl; // Return original on error
   }
 }
