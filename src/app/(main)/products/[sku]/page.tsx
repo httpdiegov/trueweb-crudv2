@@ -6,11 +6,11 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { Truck, PackageCheck, Tag, Ruler, MessageCircle, Instagram, ChevronDown } from 'lucide-react';
+import { PackageCheck, Tag, Ruler, Instagram, ChevronDown } from 'lucide-react';
 import { AddToCartWrapper } from '@/components/product/add-to-cart-wrapper';
+import { WhatsAppBuyButton } from '@/components/product/whatsapp-buy-button';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { headers } from 'next/headers';
 import type { Imagen } from '@/types';
 import { ProductPageClient } from '@/components/product/product-page-client';
 
@@ -19,10 +19,10 @@ import { ProductPageClient } from '@/components/product/product-page-client';
 export default async function ProductDetailPage({
   params,
 }: {
-  params: { sku: string }
+  params: Promise<{ sku: string }>
 }) {
   try {
-    // Destructure params asynchronously
+    // Desestructurar params con await (Next PageProps usa Promise)
     const { sku } = await params;
     console.log('Iniciando carga de producto con SKU:', sku);
     
@@ -169,28 +169,7 @@ Enlace directo: ${productUrl}`
                     imagenes: prenda.imagenes || [],
                     imagenes_bw: prenda.imagenes_bw || []
                   }} className="w-full md:w-auto" />
-                  <Button size="lg" variant="outline" asChild className="w-full md:w-auto border-green-600 text-green-700 hover:bg-green-50 hover:text-green-800">
-                    <Link href={whatsappLink} target="_blank" rel="noopener noreferrer"
-                      onClick={() => {
-                        if (typeof window !== 'undefined' && window.fbq) {
-                          try {
-                            window.fbq('track', 'InitiateCheckout', {
-                              num_items: 1,
-                              value: prenda.precio,
-                              currency: 'PEN',
-                              contents: [{ id: prenda.sku, quantity: 1, item_price: prenda.precio }],
-                              content_type: 'product'
-                            });
-                          } catch (err) {
-                            console.error('Error al enviar InitiateCheckout desde PDP:', err);
-                          }
-                        }
-                      }}
-                    >
-                      <MessageCircle className="mr-2 h-5 w-5" />
-                      Comprar por WhatsApp
-                    </Link>
-                  </Button>
+                  <WhatsAppBuyButton href={whatsappLink} sku={prenda.sku} precio={prenda.precio} />
                 </div>
 
                 <div className="mt-6 text-xs text-muted-foreground text-center md:text-left">

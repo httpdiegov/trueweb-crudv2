@@ -13,9 +13,9 @@ interface HomePageProps {
   };
 }
 
-export default async function HomePage({ searchParams = {} }: HomePageProps) {
+export default async function HomePage({ searchParams }: { searchParams?: Promise<{ [key: string]: string | string[] | undefined }> }) {
   // Safely extract category and size from searchParams
-  const searchParamsObj = await Promise.resolve(searchParams);
+  const searchParamsObj = (await searchParams) ?? {};
   
   const category = Array.isArray(searchParamsObj.category) 
     ? searchParamsObj.category[0] 
