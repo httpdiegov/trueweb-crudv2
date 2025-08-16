@@ -56,7 +56,6 @@ export function AddToCartClient({ product, className }: AddToCartClientProps) {
       sku: product.sku,
       nombre_prenda: product.nombre_prenda,
       precio: product.precio,
-      
       // Solo incluir las imágenes BW si existen, de lo contrario array vacío
       imagenes_bw: imagenes_bw,
       
@@ -84,6 +83,17 @@ export function AddToCartClient({ product, className }: AddToCartClientProps) {
     
     console.log('Producto procesado para el carrito:', productToAdd);
     addItem(productToAdd);
+
+    // Meta Pixel: AddToCart
+    if (typeof window !== 'undefined' && window.fbq) {
+      window.fbq('track', 'AddToCart', {
+        content_type: 'product',
+        content_ids: [product.sku],
+        content_name: product.nombre_prenda,
+        value: product.precio,
+        currency: 'PEN'
+      });
+    }
   };
 
   return (
