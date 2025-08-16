@@ -47,6 +47,11 @@ const nextConfig: NextConfig = {
         destination: '/marcas',   // O a tu página de categorías, si tienes una. Si no, a '/'
         permanent: true,
       },
+      {
+        source: '/categoria-producto/:path*',
+        destination: '/categoria/:path*', // o manejar dinámicamente
+        permanent: true,
+      },
       // Puedes añadir más redirecciones aquí si encuentras otras URLs antiguas
     ]
   },
