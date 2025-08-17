@@ -57,6 +57,11 @@ const nextConfig: NextConfig = {
         destination: '/', // o manejar dinámicamente
         permanent: true,
       },
+      {
+        source: '/tienda/:path*',
+        destination: '/', // o manejar dinámicamente
+        permanent: true,
+      }
 
 
       // Puedes añadir más redirecciones aquí si encuentras otras URLs antiguas
