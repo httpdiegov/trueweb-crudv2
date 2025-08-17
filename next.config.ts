@@ -44,14 +44,21 @@ const nextConfig: NextConfig = {
       },
       {
         source: '/marcas-fila',    // La URL antigua
-        destination: '/marcas',   // O a tu página de categorías, si tienes una. Si no, a '/'
+        destination: '/',   // O a tu página de categorías, si tienes una. Si no, a '/'
         permanent: true,
       },
       {
         source: '/categoria-producto/:path*',
-        destination: '/categoria/:path*', // o manejar dinámicamente
+        destination: '/', // o manejar dinámicamente
         permanent: true,
       },
+      {
+        source: '/tallas/:path*',
+        destination: '/', // o manejar dinámicamente
+        permanent: true,
+      },
+
+
       // Puedes añadir más redirecciones aquí si encuentras otras URLs antiguas
     ]
   },

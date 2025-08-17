@@ -58,12 +58,46 @@ export function AdminProductGallery({ prendas }: AdminProductGalleryProps) {
     }
   };
 
-  const handleStockChange = (sku: string, stock: number) => {
-    setStockUpdates(prev => ({ ...prev, [sku]: stock }));
+  const handleStockChange = async (sku: string, stock: number) => {
+    const product = prendas.find(p => p.sku === sku);
+    if (!product) return;
+
+    try {
+      await updateMultipleProductsStock([product.id], stock);
+      toast({
+        title: 'Éxito',
+        description: `Stock actualizado a ${stock} para ${product.nombre_prenda}`
+      });
+      router.refresh();
+    } catch (error) {
+      console.error('Error updating stock:', error);
+      toast({
+        title: 'Error',
+        description: 'Error al actualizar el stock',
+        variant: 'destructive'
+      });
+    }
   };
 
-  const handleStatusChange = (sku: string, visible: boolean) => {
-    setStatusUpdates(prev => ({ ...prev, [sku]: visible }));
+  const handleStatusChange = async (sku: string, visible: boolean) => {
+    const product = prendas.find(p => p.sku === sku);
+    if (!product) return;
+
+    try {
+      await updateMultipleProductsStatus([product.id], visible ? 1 : 0);
+      toast({
+        title: 'Éxito',
+        description: `Producto ${visible ? 'visible' : 'oculto'}: ${product.nombre_prenda}`
+      });
+      router.refresh();
+    } catch (error) {
+      console.error('Error updating status:', error);
+      toast({
+        title: 'Error',
+        description: 'Error al actualizar el estado',
+        variant: 'destructive'
+      });
+    }
   };
 
   const handleBulkUpdate = async () => {
@@ -197,6 +231,7 @@ export function AdminProductGallery({ prendas }: AdminProductGalleryProps) {
             onClick={handleBulkUpdate}
             disabled={isUpdating || (Object.keys(stockUpdates).length === 0 && Object.keys(statusUpdates).length === 0)}
             size="sm"
+            className="hidden"
           >
             {isUpdating ? 'Actualizando...' : 'Aplicar Cambios'}
           </Button>
@@ -220,8 +255,8 @@ export function AdminProductGallery({ prendas }: AdminProductGalleryProps) {
       {/* Grid de productos */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
         {prendas.map((prenda) => {
-          const currentStock = stockUpdates[prenda.sku] ?? prenda.stock;
-          const currentVisible = statusUpdates[prenda.sku] ?? (prenda.estado === 1);
+          const currentStock = prenda.stock;
+          const currentVisible = prenda.estado === 1;
           const imageUrl = getBestImage(prenda);
           
           return (
