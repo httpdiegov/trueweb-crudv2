@@ -145,6 +145,18 @@ Enlace directo: ${productUrl}`
                     <p>• Siempre revisa las medidas específicas de cada prenda</p>
                     <p>• Compara con una prenda similar que tengas en casa</p>
                     <p>• En caso de duda, contáctanos por WhatsApp o Instagram</p>
+                    
+                    {/* Imagen de guía de tallas específica para trackpants */}
+                    {prenda.categoria_nombre?.toLowerCase() === 'trackpants' && (
+                      <div className="mt-4 mb-4">
+                        <img 
+                          src="/medidas/trackpants/trackpants.png" 
+                          alt="Guía de medidas para trackpants" 
+                          className="w-full max-w-md mx-auto rounded-lg border border-gray-200 shadow-sm"
+                        />
+                      </div>
+                    )}
+                    
                     <div className="mt-3 p-2 bg-amber-50 border border-amber-200 rounded text-amber-800">
                       <p className="text-xs font-medium">💡 Tip: Las medidas están tomadas con la prenda extendida sobre una superficie plana.</p>
                     </div>
