@@ -146,12 +146,32 @@ Enlace directo: ${productUrl}`
                     <p>• Compara con una prenda similar que tengas en casa</p>
                     <p>• En caso de duda, contáctanos por WhatsApp o Instagram</p>
                     
-                    {/* Imagen de guía de tallas específica para trackpants */}
+                    {/* Imagen de guía de tallas específica por categoría */}
                     {prenda.categoria_nombre?.toLowerCase() === 'trackpants' && (
                       <div className="mt-4 mb-4">
                         <img 
                           src="/medidas/trackpants/trackpants.png" 
                           alt="Guía de medidas para trackpants" 
+                          className="w-full max-w-md mx-auto rounded-lg border border-gray-200 shadow-sm"
+                        />
+                      </div>
+                    )}
+                    
+                    {prenda.categoria_nombre?.toLowerCase() === 'jackets' && (
+                      <div className="mt-4 mb-4">
+                        <img 
+                          src="/medidas/jackets/jackets.png" 
+                          alt="Guía de medidas para jackets" 
+                          className="w-full max-w-md mx-auto rounded-lg border border-gray-200 shadow-sm"
+                        />
+                      </div>
+                    )}
+                    
+                    {prenda.categoria_nombre?.toLowerCase() === 'hoodies' && (
+                      <div className="mt-4 mb-4">
+                        <img 
+                          src="/medidas/hoodies/hoodies.png" 
+                          alt="Guía de medidas para hoodies" 
                           className="w-full max-w-md mx-auto rounded-lg border border-gray-200 shadow-sm"
                         />
                       </div>
