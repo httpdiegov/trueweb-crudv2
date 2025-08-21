@@ -100,10 +100,10 @@ export async function sendConversionEvent(
           ...(eventData.userAgent && { client_user_agent: eventData.userAgent }),
           ...(eventData.clientIpAddress && { client_ip_address: eventData.clientIpAddress }),
           ...(eventData.fbp && { fbp: eventData.fbp }),
-          ...(eventData.fbc && { fbc: eventData.fbc }),
-          ...(eventData.email && { em: eventData.email }),
-          ...(eventData.phone && { ph: eventData.phone }),
-          ...(eventData.firstName && { fn: eventData.firstName }),
+          ...(eventData.fbc && { fbc: [eventData.fbc] }),
+          ...(eventData.email && { em: [eventData.email] }),
+          ...(eventData.phone && { ph: [eventData.phone] }),
+          ...(eventData.firstName && { fn: [eventData.firstName] }),
           ...(eventData.externalId && { external_id: eventData.externalId })
         },
         custom_data: {
