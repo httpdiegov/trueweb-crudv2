@@ -18,7 +18,13 @@ export async function POST(request: NextRequest) {
       firstName, // Nombre sin hashear (se hasheará en sendAddToCartEvent)
       externalId: bodyExternalId,
       userId,
-      sessionId
+      sessionId,
+      // Nuevos parámetros según documentación oficial de Meta
+      attributionShare,
+      originalEventName,
+      originalEventTime,
+      orderId,
+      eventId
     } = body;
 
     // Validar datos requeridos
@@ -60,6 +66,12 @@ export async function POST(request: NextRequest) {
         phone, // Se hasheará automáticamente en la función
         firstName, // Se hasheará automáticamente en la función
         externalId,
+        // Nuevos parámetros
+        attributionShare,
+        originalEventName,
+        originalEventTime,
+        orderId,
+        eventId
       });
 
       return NextResponse.json({ success: true, message: 'Evento AddToCart enviado correctamente' });

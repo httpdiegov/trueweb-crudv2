@@ -13,10 +13,18 @@ export async function POST(request: NextRequest) {
       currency = 'USD',
       fbp: bodyFbp,
       fbc: bodyFbc,
-      email,
-      phone,
-      firstName,
-      externalId
+      email, // Email sin hashear (se hasheará en sendViewContentEvent)
+      phone, // Teléfono sin hashear (se hasheará en sendViewContentEvent)
+      firstName, // Nombre sin hashear (se hasheará en sendViewContentEvent)
+      externalId: bodyExternalId,
+      userId,
+      sessionId,
+      // Nuevos parámetros según documentación oficial de Meta
+      attributionShare,
+      originalEventName,
+      originalEventTime,
+      orderId,
+      eventId
     } = body;
 
     // Validar datos requeridos
@@ -40,7 +48,7 @@ export async function POST(request: NextRequest) {
     const fbc = bodyFbc || cookieFbc;
 
     // Generar external_id si no se proporciona
-    const finalExternalId = externalId || generateExternalId(undefined, undefined, clientIpAddress);
+    const finalExternalId = bodyExternalId || generateExternalId(userId, sessionId, clientIpAddress);
 
     // Enviar evento a la API de conversiones de Meta
     try {
@@ -54,10 +62,16 @@ export async function POST(request: NextRequest) {
         clientIpAddress,
         fbp,
         fbc,
-        email,
-        phone,
-        firstName,
+        email, // Se hasheará automáticamente en la función
+        phone, // Se hasheará automáticamente en la función
+        firstName, // Se hasheará automáticamente en la función
         externalId: finalExternalId,
+        // Nuevos parámetros
+        attributionShare,
+        originalEventName,
+        originalEventTime,
+        orderId,
+        eventId
       });
 
       return NextResponse.json({ success: true, message: 'Evento ViewContent enviado correctamente' });

@@ -66,10 +66,10 @@ export interface ConversionEventData {
   userAgent?: string;
   clientIpAddress?: string;
   fbp?: string; // Facebook browser ID (+5.83% conversiones)
-  fbc?: string; // Facebook click ID (+54.7% conversiones)
-  email?: string; // Email hasheado SHA-256 (+42.4% conversiones)
-  phone?: string; // Teléfono hasheado SHA-256 (+11.56% conversiones)
-  firstName?: string; // Nombre hasheado SHA-256 (mejora coincidencias)
+  fbc?: string | null; // Facebook click ID (+54.7% conversiones)
+  email?: string | null; // Email hasheado SHA-256 (+42.4% conversiones)
+  phone?: string | null; // Teléfono hasheado SHA-256 (+11.56% conversiones)
+  firstName?: string | null; // Nombre hasheado SHA-256 (mejora coincidencias)
   externalId?: string; // Identificador externo (+5.83% conversiones)
   value?: number;
   currency?: string;
@@ -78,6 +78,12 @@ export interface ConversionEventData {
   contentCategory?: string;
   contentType?: string;
   numItems?: number;
+  // Nuevos parámetros según documentación oficial de Meta
+  attributionShare?: string; // Para attribution_data
+  originalEventName?: string; // Para original_event_data
+  originalEventTime?: number; // Para original_event_data
+  orderId?: string; // Para original_event_data
+  eventId?: string; // Para original_event_data
 }
 
 // Función para enviar eventos de conversión
@@ -100,10 +106,10 @@ export async function sendConversionEvent(
           ...(eventData.userAgent && { client_user_agent: eventData.userAgent }),
           ...(eventData.clientIpAddress && { client_ip_address: eventData.clientIpAddress }),
           ...(eventData.fbp && { fbp: eventData.fbp }),
-          ...(eventData.fbc && { fbc: [eventData.fbc] }),
-          ...(eventData.email && { em: [eventData.email] }),
-          ...(eventData.phone && { ph: [eventData.phone] }),
-          ...(eventData.firstName && { fn: [eventData.firstName] }),
+          ...(eventData.fbc !== undefined && { fbc: eventData.fbc }),
+          ...(eventData.email !== undefined && { em: [eventData.email] }),
+          ...(eventData.phone !== undefined && { ph: [eventData.phone] }),
+          ...(eventData.firstName !== undefined && { fn: [eventData.firstName] }),
           ...(eventData.externalId && { external_id: eventData.externalId })
         },
         custom_data: {
@@ -114,7 +120,21 @@ export async function sendConversionEvent(
           ...(eventData.contentCategory && { content_category: eventData.contentCategory }),
           ...(eventData.contentType && { content_type: eventData.contentType }),
           ...(eventData.numItems && { num_items: eventData.numItems })
-        }
+        },
+        // Parámetros adicionales según documentación oficial de Meta
+        ...(eventData.attributionShare && {
+          attribution_data: {
+            attribution_share: eventData.attributionShare
+          }
+        }),
+        ...(eventData.originalEventName && {
+          original_event_data: {
+            event_name: eventData.originalEventName,
+            event_time: eventData.originalEventTime || Math.floor(Date.now() / 1000),
+            ...(eventData.orderId && { order_id: eventData.orderId }),
+            ...(eventData.eventId && { event_id: eventData.eventId })
+          }
+        })
       }],
       ...(testEventCode && { test_event_code: testEventCode })
     };
@@ -155,15 +175,21 @@ export async function sendAddToCartEvent(productData: {
   phone?: string; // Teléfono sin hashear (se hasheará automáticamente)
   firstName?: string; // Nombre sin hashear (se hasheará automáticamente)
   externalId?: string;
+  // Nuevos parámetros según documentación oficial de Meta
+  attributionShare?: string;
+  originalEventName?: string;
+  originalEventTime?: number;
+  orderId?: string;
+  eventId?: string;
 }): Promise<void> {
   return sendConversionEvent('AddToCart', {
     userAgent: productData.userAgent,
     clientIpAddress: productData.clientIpAddress,
     fbp: productData.fbp,
-    fbc: productData.fbc,
-    email: hashEmail(productData.email) || undefined,
-    phone: hashPhone(productData.phone) || undefined,
-    firstName: hashFirstName(productData.firstName) || undefined,
+    fbc: productData.fbc || null,
+    email: hashEmail(productData.email),
+    phone: hashPhone(productData.phone),
+    firstName: hashFirstName(productData.firstName),
     externalId: validateExternalId(productData.externalId) || undefined,
     contentIds: [productData.productId],
     contentType: 'product',
@@ -171,7 +197,13 @@ export async function sendAddToCartEvent(productData: {
     contentCategory: productData.category,
     value: productData.value,
     currency: productData.currency || 'USD',
-    numItems: 1
+    numItems: 1,
+    // Nuevos parámetros
+    attributionShare: productData.attributionShare,
+    originalEventName: productData.originalEventName,
+    originalEventTime: productData.originalEventTime,
+    orderId: productData.orderId,
+    eventId: productData.eventId
   });
 }
 
@@ -189,22 +221,34 @@ export async function sendViewContentEvent(productData: {
   phone?: string; // Teléfono sin hashear (se hasheará automáticamente)
   firstName?: string; // Nombre sin hashear (se hasheará automáticamente)
   externalId?: string;
+  // Nuevos parámetros según documentación oficial de Meta
+  attributionShare?: string;
+  originalEventName?: string;
+  originalEventTime?: number;
+  orderId?: string;
+  eventId?: string;
 }): Promise<void> {
   return sendConversionEvent('ViewContent', {
     userAgent: productData.userAgent,
     clientIpAddress: productData.clientIpAddress,
     fbp: productData.fbp,
-    fbc: productData.fbc,
-    email: hashEmail(productData.email) || undefined,
-    phone: hashPhone(productData.phone) || undefined,
-    firstName: hashFirstName(productData.firstName) || undefined,
+    fbc: productData.fbc || null,
+    email: hashEmail(productData.email),
+    phone: hashPhone(productData.phone),
+    firstName: hashFirstName(productData.firstName),
     externalId: validateExternalId(productData.externalId) || undefined,
     contentIds: [productData.productId],
     contentType: 'product',
     contentName: productData.productName,
     contentCategory: productData.category,
     value: productData.value,
-    currency: productData.currency || 'USD'
+    currency: productData.currency || 'USD',
+    // Nuevos parámetros
+    attributionShare: productData.attributionShare,
+    originalEventName: productData.originalEventName,
+    originalEventTime: productData.originalEventTime,
+    orderId: productData.orderId,
+    eventId: productData.eventId
   });
 }
 
@@ -222,15 +266,21 @@ export async function sendInitiateCheckoutEvent(productData: {
   phone?: string; // Teléfono sin hashear (se hasheará automáticamente)
   firstName?: string; // Nombre sin hashear (se hasheará automáticamente)
   externalId?: string;
+  // Nuevos parámetros según documentación oficial de Meta
+  attributionShare?: string;
+  originalEventName?: string;
+  originalEventTime?: number;
+  orderId?: string;
+  eventId?: string;
 }): Promise<void> {
   return sendConversionEvent('InitiateCheckout', {
     userAgent: productData.userAgent,
     clientIpAddress: productData.clientIpAddress,
     fbp: productData.fbp,
-    fbc: productData.fbc,
-    email: hashEmail(productData.email) || undefined,
-    phone: hashPhone(productData.phone) || undefined,
-    firstName: hashFirstName(productData.firstName) || undefined,
+    fbc: productData.fbc || null,
+    email: hashEmail(productData.email),
+    phone: hashPhone(productData.phone),
+    firstName: hashFirstName(productData.firstName),
     externalId: validateExternalId(productData.externalId) || undefined,
     contentIds: [productData.productId],
     contentType: 'product',
@@ -238,7 +288,13 @@ export async function sendInitiateCheckoutEvent(productData: {
     contentCategory: productData.category,
     value: productData.value,
     currency: productData.currency || 'USD',
-    numItems: 1
+    numItems: 1,
+    // Nuevos parámetros
+    attributionShare: productData.attributionShare,
+    originalEventName: productData.originalEventName,
+    originalEventTime: productData.originalEventTime,
+    orderId: productData.orderId,
+    eventId: productData.eventId
   });
 }
 
@@ -253,17 +309,29 @@ export async function sendSearchEvent(searchData: {
   phone?: string; // Teléfono sin hashear (se hasheará automáticamente)
   firstName?: string; // Nombre sin hashear (se hasheará automáticamente)
   externalId?: string;
+  // Nuevos parámetros según documentación oficial de Meta
+  attributionShare?: string;
+  originalEventName?: string;
+  originalEventTime?: number;
+  orderId?: string;
+  eventId?: string;
 }): Promise<void> {
   return sendConversionEvent('Search', {
     userAgent: searchData.userAgent,
     clientIpAddress: searchData.clientIpAddress,
     fbp: searchData.fbp,
-    fbc: searchData.fbc,
-    email: hashEmail(searchData.email) || undefined,
-    phone: hashPhone(searchData.phone) || undefined,
-    firstName: hashFirstName(searchData.firstName) || undefined,
+    fbc: searchData.fbc || null,
+    email: hashEmail(searchData.email),
+    phone: hashPhone(searchData.phone),
+    firstName: hashFirstName(searchData.firstName),
     externalId: validateExternalId(searchData.externalId) || undefined,
     contentName: searchData.searchTerm,
-    contentType: 'search'
+    contentType: 'search',
+    // Nuevos parámetros
+    attributionShare: searchData.attributionShare,
+    originalEventName: searchData.originalEventName,
+    originalEventTime: searchData.originalEventTime,
+    orderId: searchData.orderId,
+    eventId: searchData.eventId
   });
 }

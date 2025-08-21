@@ -16,7 +16,13 @@ export async function POST(request: NextRequest) {
       email,
       phone,
       firstName,
-      externalId
+      externalId,
+      // Nuevos parámetros según documentación oficial de Meta
+      attributionShare,
+      originalEventName,
+      originalEventTime,
+      orderId,
+      eventId
     } = body;
 
     // Validar datos requeridos
@@ -58,6 +64,12 @@ export async function POST(request: NextRequest) {
         phone,
         firstName,
         externalId: finalExternalId,
+        // Nuevos parámetros
+        attributionShare,
+        originalEventName,
+        originalEventTime,
+        orderId,
+        eventId
       });
 
       return NextResponse.json({ success: true, message: 'Evento InitiateCheckout enviado correctamente' });

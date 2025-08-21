@@ -4,7 +4,21 @@ import { sendSearchEvent, getClientIpAddress } from '@/lib/meta-conversions';
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { searchTerm, fbp, fbc, email, phone, firstName, externalId } = body;
+    const { 
+      searchTerm, 
+      fbp, 
+      fbc, 
+      email, 
+      phone, 
+      firstName, 
+      externalId,
+      // Nuevos parámetros según documentación oficial de Meta
+      attributionShare,
+      originalEventName,
+      originalEventTime,
+      orderId,
+      eventId
+    } = body;
 
     // Validar datos requeridos
     if (!searchTerm) {
@@ -35,7 +49,13 @@ export async function POST(request: NextRequest) {
       email,
       phone,
       firstName,
-      externalId: finalExternalId
+      externalId: finalExternalId,
+      // Nuevos parámetros
+      attributionShare,
+      originalEventName,
+      originalEventTime,
+      orderId,
+      eventId
     });
 
     return NextResponse.json({ 
