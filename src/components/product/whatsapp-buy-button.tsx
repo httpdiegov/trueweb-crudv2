@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { MessageCircle } from 'lucide-react';
+import { getFacebookTrackingData } from '@/utils/facebook-tracking';
 
 interface WhatsAppBuyButtonProps {
   href: string;
@@ -25,6 +26,9 @@ export function WhatsAppBuyButton({ href, sku, precio, className }: WhatsAppBuyB
         rel="noopener noreferrer"
         onClick={() => {
           if (typeof window !== 'undefined') {
+            // Obtener datos de tracking de Facebook
+            const trackingData = getFacebookTrackingData();
+            
             // Enviar evento InitiateCheckout a Meta Conversions API
             fetch('/api/conversions/initiate-checkout', {
               method: 'POST',
@@ -37,7 +41,8 @@ export function WhatsAppBuyButton({ href, sku, precio, className }: WhatsAppBuyB
                 category: 'Ropa Vintage',
                 value: precio,
                 currency: 'PEN',
-                quantity: 1
+                quantity: 1,
+                ...trackingData
               })
             }).catch(error => {
               console.error('Error al enviar evento InitiateCheckout:', error);

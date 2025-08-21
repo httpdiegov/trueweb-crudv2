@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 import { ToastProvider } from '@/components/providers/toast-provider';
 import { ThemeProvider } from '@/components/theme/theme-provider';
+import { FacebookTrackingInit } from '@/components/tracking/facebook-tracking-init';
 
 export const metadata: Metadata = {
   title: 'True Vintage',
@@ -86,6 +87,7 @@ export default function RootLayout({
         </noscript>
         <ThemeProvider>
           <ToastProvider>
+            <FacebookTrackingInit />
             {children}
           </ToastProvider>
         </ThemeProvider>

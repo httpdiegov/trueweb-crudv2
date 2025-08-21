@@ -3,6 +3,7 @@
 import { X, Plus, Minus, ShoppingCart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useCart } from '@/contexts/cart-context';
+import { getFacebookTrackingData } from '@/utils/facebook-tracking';
 import Image from 'next/image';
 import Link from 'next/link';
 
@@ -155,10 +156,30 @@ Enlace directo: https://truevintage.pe/products/${item.sku}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex items-center justify-center gap-2 rounded-md border border-transparent bg-green-600 px-6 py-3 text-base font-medium text-white shadow-sm hover:bg-green-700"
-                    onClick={(e) => {
-                      // Meta Pixel: InitiateCheckout
-                      if (typeof window !== 'undefined' && window.fbq) {
-                        try {
+                    onClick={async (e) => {
+                      try {
+                        // Obtener datos de tracking de Facebook
+                        const trackingData = getFacebookTrackingData();
+                        
+                        // Enviar evento InitiateCheckout a Meta Conversions API
+                        await fetch('/api/conversions/initiate-checkout', {
+                          method: 'POST',
+                          headers: {
+                            'Content-Type': 'application/json',
+                          },
+                          body: JSON.stringify({
+                            productId: items.map(item => item.sku).join(','),
+                            productName: items.map(item => item.nombre_prenda).join(', '),
+                            category: 'Ropa Vintage',
+                            value: totalPrice,
+                            currency: 'PEN',
+                            quantity: items.reduce((sum, item) => sum + (item.quantity || 1), 0),
+                            ...trackingData,
+                          }),
+                        });
+                        
+                        // Meta Pixel: InitiateCheckout
+                        if (typeof window !== 'undefined' && window.fbq) {
                           window.fbq('track', 'InitiateCheckout', {
                             num_items: items.length,
                             value: totalPrice,
@@ -170,10 +191,11 @@ Enlace directo: https://truevintage.pe/products/${item.sku}
                             })),
                             content_type: 'product'
                           });
-                        } catch (err) {
-                          console.error('Error al enviar InitiateCheckout:', err);
                         }
+                      } catch (err) {
+                        console.error('Error al enviar InitiateCheckout:', err);
                       }
+                      
                       toggleCart();
                     }}
                   >

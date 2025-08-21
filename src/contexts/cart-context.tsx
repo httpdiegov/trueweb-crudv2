@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useState, ReactNode } from 'react';
 import { Prenda } from '@/types';
+import { getFacebookTrackingData } from '@/utils/facebook-tracking';
 
 type CartItem = Prenda & {
   quantity: number;
@@ -64,6 +65,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
       
       // Enviar evento AddToCart a Meta Conversions API
       if (typeof window !== 'undefined') {
+        const trackingData = getFacebookTrackingData();
+        
         fetch('/api/conversions/add-to-cart', {
           method: 'POST',
           headers: {
@@ -75,7 +78,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
             category: 'Ropa Vintage', // Usar categoria por defecto ya que categoria_id es un número
             value: itemWithImages.precio,
             currency: 'PEN',
-            quantity: 1
+            quantity: 1,
+            fbp: trackingData.fbp,
+            fbc: trackingData.fbc
           })
         }).catch(error => {
           console.error('Error al enviar evento AddToCart:', error);

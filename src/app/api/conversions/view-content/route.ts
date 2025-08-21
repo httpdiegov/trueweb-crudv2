@@ -9,7 +9,9 @@ export async function POST(request: NextRequest) {
       productName,
       category,
       value,
-      currency = 'USD'
+      currency = 'USD',
+      fbp: bodyFbp,
+      fbc: bodyFbc
     } = body;
 
     // Validar datos requeridos
@@ -27,8 +29,12 @@ export async function POST(request: NextRequest) {
                             undefined;
     
     // Obtener cookies de Facebook si están disponibles
-    const fbp = request.cookies.get('_fbp')?.value;
-    const fbc = request.cookies.get('_fbc')?.value;
+    const cookieFbp = request.cookies.get('_fbp')?.value;
+    const cookieFbc = request.cookies.get('_fbc')?.value;
+
+    // Priorizar fbc/fbp del body sobre las cookies (más actualizado)
+    const fbp = bodyFbp || cookieFbp;
+    const fbc = bodyFbc || cookieFbc;
 
     // Enviar evento a la API de conversiones de Meta
     try {
@@ -38,10 +44,10 @@ export async function POST(request: NextRequest) {
         category,
         value,
         currency,
-        userAgent: request.headers.get('user-agent') || undefined,
+        userAgent,
         clientIpAddress,
-        fbp: request.headers.get('x-fbp') || undefined,
-        fbc: request.headers.get('x-fbc') || undefined,
+        fbp,
+        fbc,
       });
 
       return NextResponse.json({ success: true, message: 'Evento ViewContent enviado correctamente' });
