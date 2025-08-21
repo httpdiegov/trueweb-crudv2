@@ -2,19 +2,18 @@
 
 import { useEffect } from 'react';
 import { getFacebookTrackingData } from '@/utils/facebook-tracking';
+import { generateViewContentEventId } from '@/utils/event-id';
+import { Prenda } from '@/types';
 
 interface ProductPageClientProps {
-  product: {
-    id: number;
-    sku: string;
-    nombre_prenda: string;
-    precio: number;
-    categoria_nombre?: string;
-  };
+  product: Prenda;
 }
 
 export function ProductPageClient({ product }: ProductPageClientProps) {
   useEffect(() => {
+    // Generar event_id único para deduplicación
+    const eventId = generateViewContentEventId(product.sku);
+    
     // Enviar evento ViewContent a Meta Conversions API
     const sendViewContent = async () => {
       try {
@@ -34,6 +33,7 @@ export function ProductPageClient({ product }: ProductPageClientProps) {
             email: trackingData.email,
             phone: trackingData.phone,
             firstName: trackingData.firstName,
+            eventId: eventId, // Event ID para deduplicación
             ...trackingData,
           }),
         });
@@ -45,14 +45,15 @@ export function ProductPageClient({ product }: ProductPageClientProps) {
     sendViewContent();
 
     // También disparar evento ViewContent al Meta Pixel (frontend)
-    if (typeof window !== 'undefined' && window.fbq) {
-      window.fbq('track', 'ViewContent', {
+    if (typeof window !== 'undefined' && window.fbq && process.env.NEXT_PUBLIC_META_PIXEL_ID) {
+      window.fbq('trackSingle', process.env.NEXT_PUBLIC_META_PIXEL_ID, 'ViewContent', {
         content_type: 'product',
         content_ids: [product.sku],
         content_name: product.nombre_prenda,
         content_category: product.categoria_nombre || 'Vintage',
         value: product.precio,
-        currency: 'PEN'
+        currency: 'PEN',
+        eventID: eventId // Event ID para deduplicación
       });
     }
   }, [product]);

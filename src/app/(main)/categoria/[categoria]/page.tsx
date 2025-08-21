@@ -111,7 +111,7 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
           "position": index + 1,
           "name": product.nombre_prenda,
           "url": `https://truevintage.pe/products/${product.sku}`,
-          "image": product.imagenes?.[0]?.url_imagen || '',
+          "image": product.imagenes?.[0]?.url || '',
           "offers": {
             "@type": "Offer",
             "price": product.precio.toFixed(2),

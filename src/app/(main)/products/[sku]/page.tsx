@@ -170,13 +170,7 @@ Enlace directo: ${productUrl}`
           }}
         />
         <div className="container mx-auto max-w-screen-xl px-4 py-8 md:py-12">
-          <ProductPageClient product={{
-            id: prenda.id,
-            sku: prenda.sku,
-            nombre_prenda: prenda.nombre_prenda,
-            precio: prenda.precio,
-            categoria_nombre: prenda.categoria_nombre
-          }} />
+          <ProductPageClient product={prenda} />
           <div className="grid md:grid-cols-2 gap-8 lg:gap-12">
           <div>
             <ProductImageGallery images={colorImages} productName={prenda.nombre_prenda} />

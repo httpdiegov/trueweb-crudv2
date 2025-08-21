@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Obtener datos de tracking de Facebook
-    const trackingData = getFacebookTrackingData(request);
+    const trackingData = getFacebookTrackingData();
     
     // Obtener IP del cliente
     const clientIpAddress = getClientIpAddress(request);

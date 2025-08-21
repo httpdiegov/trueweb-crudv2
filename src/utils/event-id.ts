@@ -42,6 +42,20 @@ export function generateAddToCartEventId(
 }
 
 /**
+ * Genera un event_id específico para eventos ViewContent
+ * 
+ * @param productSku - SKU del producto
+ * @param timestamp - Timestamp opcional
+ * @returns string - Event ID único para ViewContent
+ */
+export function generateViewContentEventId(
+  productSku: string,
+  timestamp?: number
+): string {
+  return generateEventId('ViewContent', productSku.replace(/[^a-zA-Z0-9]/g, '_'), timestamp);
+}
+
+/**
  * Genera un event_id específico para eventos Purchase
  * 
  * @param orderId - ID de la orden

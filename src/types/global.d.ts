@@ -84,7 +84,7 @@ declare global {
   interface Window {
     // Agrega aquí propiedades globales que necesites
     gtag?: (...args: any[]) => void;
-    fbq?: (command: 'init' | 'track' | 'consent' | string, eventNameOrId?: string, params?: Record<string, any>) => void;
+    fbq?: (command: string, ...args: any[]) => void;
   }
 }
 
