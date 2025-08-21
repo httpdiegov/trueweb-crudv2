@@ -7,7 +7,7 @@ const { sendConversionEvent } = require('./src/lib/meta-conversions');
 async function sendPurchaseEventExample() {
   const eventData = {
     userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-    clientIpAddress: '192.168.1.1',
+    clientIpAddress: '2001:0db8:85a3:0000:0000:8a2e:0370:7334', // IPv6 preferido sobre IPv4
     fbp: 'fb.1.1554763741205.AbCdEfGhIjKlMnOpQrStUvWxYz1234567890',
     fbc: null, // Puede ser null como en el ejemplo oficial
     email: 'user@example.com', // Se hasheará automáticamente a SHA-256

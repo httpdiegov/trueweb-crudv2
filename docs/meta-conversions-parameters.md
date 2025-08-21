@@ -48,8 +48,10 @@
 #### `clientIpAddress` (client_ip_address)
 - **Tipo**: String
 - **Impacto**: Mejora la geolocalización y coincidencia de usuarios
-- **Formato**: Dirección IP del cliente
-- **Ejemplo**: `"192.168.1.1"`
+- **Formato**: Dirección IP del cliente (IPv4 o IPv6, se prioriza IPv6)
+- **Ejemplo IPv4**: `"192.168.1.1"`
+- **Ejemplo IPv6**: `"2001:0db8:85a3:0000:0000:8a2e:0370:7334"`
+- **Nota**: IPv6 es el estándar preferido según Meta para mejor durabilidad
 
 #### `userAgent` (client_user_agent)
 - **Tipo**: String

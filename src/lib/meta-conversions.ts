@@ -15,9 +15,9 @@ const CONVERSIONS_API_URL = `https://graph.facebook.com/v18.0/${pixelId}/events`
 
 /**
  * Extrae la dirección IP del cliente de los headers de la request
- * Mejora la calidad de coincidencias según Meta
- * @param headers - Headers de la request
- * @returns IP del cliente o null si no se encuentra
+ * Prioriza IPv6 sobre IPv4 según las recomendaciones de Meta
+ * @param request - Request de Next.js
+ * @returns IP del cliente (preferiblemente IPv6) o undefined si no se encuentra
  */
 export function getClientIpAddress(request: NextRequest): string | undefined {
   // Lista de headers en orden de prioridad
@@ -31,19 +31,32 @@ export function getClientIpAddress(request: NextRequest): string | undefined {
     'forwarded'
   ];
 
+  const foundIps: string[] = [];
+
+  // Recopilar todas las IPs válidas
   for (const header of ipHeaders) {
     const value = request.headers.get(header);
     if (value) {
       // x-forwarded-for puede contener múltiples IPs separadas por comas
-      // La primera IP es la del cliente original
-      const ip = value.split(',')[0].trim();
-      if (isValidIp(ip)) {
-        return ip;
+      const ips = value.split(',').map(ip => ip.trim());
+      for (const ip of ips) {
+        if (isValidIp(ip)) {
+          foundIps.push(ip);
+        }
       }
     }
   }
 
-  return undefined;
+  if (foundIps.length === 0) {
+    return undefined;
+  }
+
+  // Priorizar IPv6 sobre IPv4 según recomendaciones de Meta
+  const ipv6Addresses = foundIps.filter(ip => isIPv6(ip));
+  const ipv4Addresses = foundIps.filter(ip => isIPv4(ip));
+
+  // Retornar la primera IPv6 si está disponible, sino la primera IPv4
+  return ipv6Addresses.length > 0 ? ipv6Addresses[0] : ipv4Addresses[0];
 }
 
 /**
@@ -52,13 +65,41 @@ export function getClientIpAddress(request: NextRequest): string | undefined {
  * @returns true si es una IP válida
  */
 function isValidIp(ip: string): boolean {
-  // Regex para IPv4
+  return isIPv4(ip) || isIPv6(ip);
+}
+
+/**
+ * Valida si una cadena es una dirección IPv4 válida
+ * @param ip - Cadena a validar
+ * @returns true si es una IPv4 válida
+ */
+function isIPv4(ip: string): boolean {
   const ipv4Regex = /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
+  return ipv4Regex.test(ip);
+}
+
+/**
+ * Valida si una cadena es una dirección IPv6 válida
+ * Soporta formato completo, comprimido y casos especiales
+ * @param ip - Cadena a validar
+ * @returns true si es una IPv6 válida
+ */
+function isIPv6(ip: string): boolean {
+  // Casos especiales
+  if (ip === '::' || ip === '::1') {
+    return true;
+  }
+
+  // IPv6 completa (8 grupos de 4 dígitos hexadecimales)
+  const fullIPv6Regex = /^([0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}$/;
   
-  // Regex básica para IPv6
-  const ipv6Regex = /^(?:[0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}$|^::1$|^::$/;
+  // IPv6 comprimida con :: (puede aparecer solo una vez)
+  const compressedIPv6Regex = /^(([0-9a-fA-F]{1,4}:)*)?::([0-9a-fA-F]{1,4}:)*[0-9a-fA-F]{1,4}$|^(([0-9a-fA-F]{1,4}:)*)?::$/;
   
-  return ipv4Regex.test(ip) || ipv6Regex.test(ip);
+  // IPv6 con notación mixta IPv4 al final
+  const mixedIPv6Regex = /^(([0-9a-fA-F]{1,4}:)*)?::([0-9a-fA-F]{1,4}:)*((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
+  
+  return fullIPv6Regex.test(ip) || compressedIPv6Regex.test(ip) || mixedIPv6Regex.test(ip);
 }
 
 // Tipos para los eventos
