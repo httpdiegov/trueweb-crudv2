@@ -113,10 +113,70 @@ function setCookie(name: string, value: string, days: number): void {
  * Obtiene los datos de tracking de Facebook para enviar a la API de conversiones
  * @returns Objeto con fbp y fbc si están disponibles
  */
-export function getFacebookTrackingData(): { fbp?: string; fbc?: string } {
+/**
+ * Obtiene datos de usuario desde localStorage/sessionStorage
+ * @returns Objeto con datos de usuario disponibles
+ */
+export function getUserData(): { email?: string; phone?: string; firstName?: string } {
+  if (typeof window === 'undefined') return {};
+  
+  try {
+    // Intentar obtener datos desde localStorage
+    const userData = {
+      email: localStorage.getItem('user_email') || sessionStorage.getItem('user_email') || undefined,
+      phone: localStorage.getItem('user_phone') || sessionStorage.getItem('user_phone') || undefined,
+      firstName: localStorage.getItem('user_firstName') || sessionStorage.getItem('user_firstName') || undefined
+    };
+    
+    // Filtrar valores vacíos
+    Object.keys(userData).forEach(key => {
+      if (!userData[key as keyof typeof userData] || userData[key as keyof typeof userData]?.trim() === '') {
+        delete userData[key as keyof typeof userData];
+      }
+    });
+    
+    return userData;
+  } catch (error) {
+    console.warn('Error al obtener datos de usuario:', error);
+    return {};
+  }
+}
+
+/**
+ * Guarda datos de usuario en localStorage para tracking
+ * @param userData Datos de usuario a guardar
+ */
+export function saveUserData(userData: { email?: string; phone?: string; firstName?: string }): void {
+  if (typeof window === 'undefined') return;
+  
+  try {
+    if (userData.email) {
+      localStorage.setItem('user_email', userData.email.trim());
+    }
+    if (userData.phone) {
+      localStorage.setItem('user_phone', userData.phone.trim());
+    }
+    if (userData.firstName) {
+      localStorage.setItem('user_firstName', userData.firstName.trim());
+    }
+  } catch (error) {
+    console.warn('Error al guardar datos de usuario:', error);
+  }
+}
+
+export function getFacebookTrackingData(): { 
+  fbp?: string; 
+  fbc?: string; 
+  email?: string; 
+  phone?: string; 
+  firstName?: string; 
+} {
+  const userData = getUserData();
+  
   return {
     fbp: getFbp(),
-    fbc: getFbc()
+    fbc: getFbc(),
+    ...userData
   };
 }
 

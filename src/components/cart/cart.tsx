@@ -174,6 +174,9 @@ Enlace directo: https://truevintage.pe/products/${item.sku}
                             value: totalPrice,
                             currency: 'PEN',
                             quantity: items.reduce((sum, item) => sum + (item.quantity || 1), 0),
+                            email: trackingData.email,
+                            phone: trackingData.phone,
+                            firstName: trackingData.firstName,
                             ...trackingData,
                           }),
                         });

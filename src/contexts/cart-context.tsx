@@ -80,7 +80,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
             currency: 'PEN',
             quantity: 1,
             fbp: trackingData.fbp,
-            fbc: trackingData.fbc
+            fbc: trackingData.fbc,
+            // Incluir datos de usuario si están disponibles
+            email: trackingData.email,
+            phone: trackingData.phone,
+            firstName: trackingData.firstName
           })
         }).catch(error => {
           console.error('Error al enviar evento AddToCart:', error);

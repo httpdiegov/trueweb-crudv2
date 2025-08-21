@@ -42,6 +42,9 @@ export function WhatsAppBuyButton({ href, sku, precio, className }: WhatsAppBuyB
                 value: precio,
                 currency: 'PEN',
                 quantity: 1,
+                email: trackingData.email,
+                phone: trackingData.phone,
+                firstName: trackingData.firstName,
                 ...trackingData
               })
             }).catch(error => {

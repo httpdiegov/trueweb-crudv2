@@ -5,12 +5,42 @@ import { ThemeProvider } from '@/components/theme/theme-provider';
 import { FacebookTrackingInit } from '@/components/tracking/facebook-tracking-init';
 
 export const metadata: Metadata = {
-  title: 'True Vintage',
-  description: 'Tienda online de ropa vintage',
+  title: 'True Vintage Perú | Ropa Vintage Americana y Segunda Mano en Lima',
+  description: 'Tienda online de ropa vintage americana, segunda mano y thrift en Perú. Encuentra prendas únicas de los 80s, 90s y 2000s. Envíos a todo el país desde Lima.',
+  keywords: 'ropa vintage, ropa americana, segunda mano, thrift shop, ropa vintage Lima, ropa vintage Perú, ropa 90s, ropa 80s, ropa 2000s, vintage fashion, sustainable fashion, moda sostenible',
+  authors: [{ name: 'True Vintage Perú' }],
+  creator: 'True Vintage Perú',
+  publisher: 'True Vintage Perú',
+  robots: 'index, follow',
+  openGraph: {
+    type: 'website',
+    locale: 'es_PE',
+    url: 'https://truevintage.pe',
+    siteName: 'True Vintage Perú',
+    title: 'True Vintage Perú | Ropa Vintage Americana y Segunda Mano',
+    description: 'Tienda online de ropa vintage americana, segunda mano y thrift en Perú. Encuentra prendas únicas de los 80s, 90s y 2000s.',
+    images: [
+      {
+        url: 'https://truevintageperu.com/vtg/logo_grande.jpg',
+        width: 1200,
+        height: 630,
+        alt: 'True Vintage Perú - Ropa Vintage Americana',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'True Vintage Perú | Ropa Vintage Americana',
+    description: 'Tienda online de ropa vintage americana y segunda mano en Perú',
+    images: ['https://truevintageperu.com/vtg/logo_grande.jpg'],
+  },
   icons: {
     icon: [
       { url: 'https://truevintageperu.com/vtg/logo_grande.jpg', type: 'image/jpg' },
     ],
+  },
+  alternates: {
+    canonical: 'https://truevintage.pe',
   },
 };
 

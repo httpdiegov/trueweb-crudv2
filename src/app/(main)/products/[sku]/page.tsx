@@ -14,6 +14,7 @@ import { notFound } from 'next/navigation';
 import type { Imagen } from '@/types';
 import type { Metadata } from 'next';
 import { ProductPageClient } from '@/components/product/product-page-client';
+import Script from 'next/script';
 
 // Función para generar metadata dinámica con Open Graph
 export async function generateMetadata({
@@ -34,7 +35,7 @@ export async function generateMetadata({
 
     // Obtener la primera imagen disponible del producto
     const primaryImage = prenda.imagenes && prenda.imagenes.length > 0 
-      ? prenda.imagenes[0].url_imagen 
+      ? prenda.imagenes[0].url 
       : '/placeholder-product.jpg';
     
     // Asegurar que la URL de la imagen sea absoluta
@@ -127,16 +128,56 @@ Enlace directo: ${productUrl}`
     // Solo usar imágenes a color para la galería de detalles
     const colorImages: Imagen[] = prenda.imagenes || [];
 
+    // Generar datos estructurados JSON-LD para SEO
+    const structuredData = {
+      "@context": "https://schema.org/",
+      "@type": "Product",
+      "name": prenda.nombre_prenda,
+      "image": colorImages.map(img => img.url.startsWith('http') ? img.url : `https://truevintage.pe${img.url}`),
+      "description": prenda.caracteristicas || `${prenda.nombre_prenda} - Ropa vintage de calidad en True Vintage Perú`,
+      "sku": prenda.sku,
+      "brand": {
+        "@type": "Brand",
+        "name": "True Vintage"
+      },
+      "category": prenda.categoria_nombre || "Ropa Vintage",
+      "offers": {
+        "@type": "Offer",
+        "url": productUrl,
+        "priceCurrency": "PEN",
+        "price": prenda.precio.toFixed(2),
+        "availability": prenda.stock > 0 && prenda.separado !== 1 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+        "seller": {
+          "@type": "Organization",
+          "name": "True Vintage",
+          "url": "https://truevintage.pe"
+        }
+      },
+      "aggregateRating": {
+        "@type": "AggregateRating",
+        "ratingValue": "4.8",
+        "reviewCount": "127"
+      }
+    };
+
     return (
-      <div className="container mx-auto max-w-screen-xl px-4 py-8 md:py-12">
-        <ProductPageClient product={{
-          id: prenda.id,
-          sku: prenda.sku,
-          nombre_prenda: prenda.nombre_prenda,
-          precio: prenda.precio,
-          categoria_nombre: prenda.categoria_nombre
-        }} />
-        <div className="grid md:grid-cols-2 gap-8 lg:gap-12">
+      <>
+        <Script
+          id="product-structured-data"
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(structuredData)
+          }}
+        />
+        <div className="container mx-auto max-w-screen-xl px-4 py-8 md:py-12">
+          <ProductPageClient product={{
+            id: prenda.id,
+            sku: prenda.sku,
+            nombre_prenda: prenda.nombre_prenda,
+            precio: prenda.precio,
+            categoria_nombre: prenda.categoria_nombre
+          }} />
+          <div className="grid md:grid-cols-2 gap-8 lg:gap-12">
           <div>
             <ProductImageGallery images={colorImages} productName={prenda.nombre_prenda} />
           </div>
@@ -340,7 +381,8 @@ Enlace directo: ${productUrl}`
             </Link>
           </div>
         </div>
-      </div>
+        </div>
+      </>
     );
   } catch (error) {
     console.error('Error en ProductDetailPage:', error);

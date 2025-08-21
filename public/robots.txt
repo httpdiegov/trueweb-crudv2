@@ -1,0 +1,35 @@
+# Robots.txt para True Vintage Perú
+# Optimizado para SEO en el mercado peruano
+
+User-agent: *
+Allow: /
+
+# Permitir acceso a todas las páginas importantes
+Allow: /products/
+Allow: /catalog
+Allow: /api/
+
+# Bloquear páginas administrativas
+Disallow: /admin/
+Disallow: /api/admin/
+
+# Bloquear archivos temporales y de sistema
+Disallow: /_next/
+Disallow: /api/auth/
+Disallow: /*.json$
+
+# Permitir bots de redes sociales
+User-agent: facebookexternalhit
+Allow: /
+
+User-agent: Twitterbot
+Allow: /
+
+User-agent: WhatsApp
+Allow: /
+
+# Sitemap
+Sitemap: https://truevintage.pe/sitemap.xml
+
+# Crawl-delay para evitar sobrecarga del servidor
+Crawl-delay: 1

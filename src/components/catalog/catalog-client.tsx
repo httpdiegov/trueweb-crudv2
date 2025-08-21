@@ -11,6 +11,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Input } from '@/components/ui/input';
+import { NewsletterForm } from '@/components/newsletter/newsletter-form';
 import type { Categoria, Talla, Prenda } from '@/types';
 
 interface CatalogClientProps {
@@ -436,6 +437,13 @@ export function CatalogClient({
             dropValue={dropValue}
           />
         )}
+      </section>
+      
+      {/* Newsletter Section */}
+      <section className="mt-12 mb-8">
+        <div className="max-w-2xl mx-auto">
+          <NewsletterForm variant="full" />
+        </div>
       </section>
     </div>
   );

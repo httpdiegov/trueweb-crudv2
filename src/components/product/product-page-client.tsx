@@ -31,6 +31,9 @@ export function ProductPageClient({ product }: ProductPageClientProps) {
             category: product.categoria_nombre || 'Ropa Vintage',
             value: product.precio,
             currency: 'PEN',
+            email: trackingData.email,
+            phone: trackingData.phone,
+            firstName: trackingData.firstName,
             ...trackingData,
           }),
         });
