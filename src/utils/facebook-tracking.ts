@@ -16,14 +16,15 @@ export function getFbclidFromUrl(): string | undefined {
 
 /**
  * Convierte fbclid a formato fbc según las especificaciones de Meta
- * El formato fbc es: fb.{subdominio}.{timestamp}.{fbclid}
+ * El formato fbc es: fb.{version}.{subdomainIndex}.{timestamp}.{fbclid}
  * @param fbclid El identificador de clic de Facebook
  * @returns El valor fbc formateado
  */
 export function convertFbclidToFbc(fbclid: string): string {
   const timestamp = Math.floor(Date.now() / 1000);
   const subdomain = getSubdomain();
-  return `fb.${subdomain}.${timestamp}.${fbclid}`;
+  // Formato oficial: fb.version.subdomainIndex.creationTime.fbclid
+  return `fb.1.${subdomain}.${timestamp}.${fbclid}`;
 }
 
 /**
@@ -62,8 +63,8 @@ export function getFbc(): string | undefined {
   const fbclid = getFbclidFromUrl();
   if (fbclid) {
     const fbc = convertFbclidToFbc(fbclid);
-    // Guardar en cookie para futuras referencias
-    setCookie('_fbc', fbc, 90); // 90 días como recomienda Meta
+    // Guardar en cookie por 90 días según recomendaciones de Meta
+    setCookie('_fbc', fbc, 90);
     return fbc;
   }
   
@@ -71,12 +72,25 @@ export function getFbc(): string | undefined {
 }
 
 /**
- * Obtiene el valor fbp desde cookies
+ * Obtiene el valor fbp desde cookies del navegador
+ * El parámetro _fbp es generado automáticamente por el Pixel de Facebook
  * @returns El valor fbp si está disponible
  */
 export function getFbp(): string | undefined {
   if (typeof window === 'undefined') return undefined;
-  return getCookie('_fbp');
+  
+  const fbp = getCookie('_fbp');
+  if (fbp) {
+    return fbp;
+  }
+  
+  // Si no existe _fbp, verificar si hay fb_browser_id como alternativa
+  const fbBrowserId = getCookie('fb_browser_id');
+  if (fbBrowserId) {
+    return fbBrowserId;
+  }
+  
+  return undefined;
 }
 
 /**
@@ -164,18 +178,40 @@ export function saveUserData(userData: { email?: string; phone?: string; firstNa
   }
 }
 
+// Función para generar o obtener external_id único para el usuario
+export function getExternalId(): string {
+  const storageKey = 'fb_external_id';
+  
+  // Intentar obtener desde localStorage primero
+  let externalId = localStorage.getItem(storageKey);
+  
+  if (!externalId) {
+    // Generar un ID único basado en timestamp y random
+    const timestamp = Date.now();
+    const random = Math.random().toString(36).substring(2, 15);
+    externalId = `ext_${timestamp}_${random}`;
+    
+    // Guardar en localStorage para persistencia
+    localStorage.setItem(storageKey, externalId);
+  }
+  
+  return externalId;
+}
+
 export function getFacebookTrackingData(): { 
   fbp?: string; 
   fbc?: string; 
   email?: string; 
   phone?: string; 
-  firstName?: string; 
+  firstName?: string;
+  externalId?: string; 
 } {
   const userData = getUserData();
   
   return {
     fbp: getFbp(),
     fbc: getFbc(),
+    externalId: getExternalId(),
     ...userData
   };
 }
@@ -190,12 +226,25 @@ export function initializeFacebookTracking(): void {
   // Capturar fbc al cargar la página si hay fbclid
   const fbclid = getFbclidFromUrl();
   if (fbclid) {
+    // Convertir a fbc y guardar en cookie por 90 días
     const fbc = convertFbclidToFbc(fbclid);
     setCookie('_fbc', fbc, 90);
     
-    // Limpiar fbclid de la URL para evitar que se propague
+    // Limpiar fbclid de la URL para mantener URLs limpias
     const url = new URL(window.location.href);
     url.searchParams.delete('fbclid');
-    window.history.replaceState({}, document.title, url.toString());
+    window.history.replaceState({}, '', url.toString());
+  }
+  
+  // Asegurar que existe un external_id para el usuario
+  getExternalId();
+  
+  // Log para debugging (solo en desarrollo)
+  if (process.env.NODE_ENV === 'development') {
+    console.log('Facebook Tracking initialized:', {
+      fbp: getFbp(),
+      fbc: getFbc(),
+      externalId: getExternalId()
+    });
   }
 }

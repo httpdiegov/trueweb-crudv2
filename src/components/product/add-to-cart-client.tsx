@@ -2,6 +2,7 @@
 
 import { Button } from '@/components/ui/button';
 import { useCart } from '@/contexts/cart-context';
+import { generateAddToCartEventId } from '@/utils/event-id';
 
 import type { Prenda } from '@/types';
 
@@ -83,9 +84,15 @@ export function AddToCartClient({ product, className }: AddToCartClientProps) {
     console.log('Producto que se agregará al carrito:', JSON.stringify(productToAdd, null, 2));
     
     console.log('Producto procesado para el carrito:', productToAdd);
-    addItem(productToAdd);
+    
+    // Generar event_id único para deduplicación
+    const eventId = generateAddToCartEventId(product.sku);
+    console.log('Event ID generado para deduplicación:', eventId);
+    
+    // Añadir al carrito con event_id
+    addItem(productToAdd, eventId);
 
-    // Meta Pixel: AddToCart
+    // Meta Pixel: AddToCart con event_id para deduplicación
     if (typeof window !== 'undefined' && window.fbq) {
       window.fbq('track', 'AddToCart', {
         content_type: 'product',
@@ -93,6 +100,8 @@ export function AddToCartClient({ product, className }: AddToCartClientProps) {
         content_name: product.nombre_prenda,
         value: product.precio,
         currency: 'PEN'
+      }, {
+        eventID: eventId // Event ID para deduplicación
       });
     }
   };

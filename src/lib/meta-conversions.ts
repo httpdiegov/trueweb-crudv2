@@ -143,6 +143,8 @@ export async function sendConversionEvent(
         event_name: eventName,
         event_time: Math.floor(Date.now() / 1000),
         action_source: 'website',
+        // Event ID para deduplicación (nivel principal)
+        ...(eventData.eventId && { event_id: eventData.eventId }),
         user_data: {
           ...(eventData.userAgent && { client_user_agent: eventData.userAgent }),
           ...(eventData.clientIpAddress && { client_ip_address: eventData.clientIpAddress }),
@@ -172,8 +174,7 @@ export async function sendConversionEvent(
           original_event_data: {
             event_name: eventData.originalEventName,
             event_time: eventData.originalEventTime || Math.floor(Date.now() / 1000),
-            ...(eventData.orderId && { order_id: eventData.orderId }),
-            ...(eventData.eventId && { event_id: eventData.eventId })
+            ...(eventData.orderId && { order_id: eventData.orderId })
           }
         })
       }],

@@ -11,7 +11,7 @@ type CartItem = Prenda & {
 type CartContextType = {
   items: CartItem[];
   isOpen: boolean;
-  addItem: (item: Prenda) => void;
+  addItem: (item: Prenda, eventId?: string) => void;
   removeItem: (sku: string) => void;
   updateQuantity: (sku: string, quantity: number) => void;
   toggleCart: () => void;
@@ -33,7 +33,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   
   console.log('Estado actual del carrito:', { items, totalItems, totalPrice });
 
-  const addItem = (item: Prenda) => {
+  const addItem = (item: Prenda, eventId?: string) => {
     console.log('=== AÑADIENDO AL CARRITO ===');
     console.log('Item recibido:', JSON.stringify(item, null, 2));
     
@@ -84,7 +84,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
             // Incluir datos de usuario si están disponibles
             email: trackingData.email,
             phone: trackingData.phone,
-            firstName: trackingData.firstName
+            firstName: trackingData.firstName,
+            // Event ID para deduplicación
+            eventId: eventId
           })
         }).catch(error => {
           console.error('Error al enviar evento AddToCart:', error);
