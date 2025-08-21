@@ -339,6 +339,54 @@ export async function sendInitiateCheckoutEvent(productData: {
   });
 }
 
+// Función para el evento Purchase
+export async function sendPurchaseEvent(purchaseData: {
+  orderId: string;
+  value: number;
+  currency: string;
+  contentIds?: string[];
+  contentNames?: string[];
+  contentCategory?: string;
+  numItems?: number;
+  userAgent?: string;
+  clientIpAddress?: string;
+  fbp?: string;
+  fbc?: string;
+  email?: string; // Email sin hashear (se hasheará automáticamente)
+  phone?: string; // Teléfono sin hashear (se hasheará automáticamente)
+  firstName?: string; // Nombre sin hashear (se hasheará automáticamente)
+  externalId?: string;
+  // Nuevos parámetros según documentación oficial de Meta
+  attributionShare?: string;
+  originalEventName?: string;
+  originalEventTime?: number;
+  eventId?: string;
+}): Promise<void> {
+  return sendConversionEvent('Purchase', {
+    userAgent: purchaseData.userAgent,
+    clientIpAddress: purchaseData.clientIpAddress,
+    fbp: purchaseData.fbp,
+    fbc: purchaseData.fbc || null,
+    email: hashEmail(purchaseData.email),
+    phone: hashPhone(purchaseData.phone),
+    firstName: hashFirstName(purchaseData.firstName),
+    externalId: validateExternalId(purchaseData.externalId) || undefined,
+    value: purchaseData.value,
+    currency: purchaseData.currency,
+    contentIds: purchaseData.contentIds,
+    contentName: purchaseData.contentNames?.join(', '),
+    contentCategory: purchaseData.contentCategory,
+    contentType: 'product',
+    numItems: purchaseData.numItems,
+    // Nuevos parámetros
+    attributionShare: purchaseData.attributionShare,
+    originalEventName: purchaseData.originalEventName,
+    originalEventTime: purchaseData.originalEventTime,
+    orderId: purchaseData.orderId,
+    eventId: purchaseData.eventId
+  });
+}
+
 // Función para el evento Search
 export async function sendSearchEvent(searchData: {
   searchTerm: string;

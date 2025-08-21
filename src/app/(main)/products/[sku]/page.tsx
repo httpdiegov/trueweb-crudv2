@@ -309,7 +309,12 @@ Enlace directo: ${productUrl}`
                     imagenes: prenda.imagenes || [],
                     imagenes_bw: prenda.imagenes_bw || []
                   }} className="w-full md:w-auto" />
-                  <WhatsAppBuyButton href={whatsappLink} sku={prenda.sku} precio={prenda.precio} />
+                  <WhatsAppBuyButton 
+                    href={whatsappLink} 
+                    sku={prenda.sku} 
+                    precio={prenda.precio} 
+                    productName={prenda.nombre_prenda}
+                  />
                 </div>
 
                 <div className="mt-6 text-xs text-muted-foreground text-center md:text-left">
