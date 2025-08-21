@@ -86,21 +86,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
           console.error('Error al enviar evento AddToCart:', error);
         });
         
-        // También enviar al Meta Pixel (frontend)
-        if (window.fbq) {
-          try {
-            window.fbq('track', 'AddToCart', {
-              content_ids: [itemWithImages.sku],
-              content_name: itemWithImages.nombre_prenda,
-              content_category: 'Ropa Vintage', // Usar categoria por defecto ya que categoria_id es un número
-              content_type: 'product',
-              value: itemWithImages.precio,
-              currency: 'PEN'
-            });
-          } catch (err) {
-            console.error('Error al enviar AddToCart al Meta Pixel:', err);
-          }
-        }
+        // Nota: Solo enviamos a la API de Conversiones para evitar eventos duplicados
+        // El Meta Pixel ya está configurado para capturar eventos automáticamente
       }
       
       return newItems;
