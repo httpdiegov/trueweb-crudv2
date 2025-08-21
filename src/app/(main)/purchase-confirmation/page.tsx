@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { CheckCircle, Package, MessageCircle, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
-import { getFacebookTrackingData } from '@/lib/facebook-tracking';
+import { getFacebookTrackingData } from '@/utils/facebook-tracking';
 
 export default function PurchaseConfirmationPage() {
   const searchParams = useSearchParams();

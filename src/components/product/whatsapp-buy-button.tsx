@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { MessageCircle } from 'lucide-react';
-import { getFacebookTrackingData } from '@/lib/facebook-tracking';
+import { getFacebookTrackingData } from '@/utils/facebook-tracking';
 import { useRouter } from 'next/navigation';
 
 interface WhatsAppBuyButtonProps {
