@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { sendViewContentEvent } from '@/lib/meta-conversions';
+import { sendViewContentEvent, getClientIpAddress } from '@/lib/meta-conversions';
+import { generateExternalId } from '@/utils/hashing';
 
 export async function POST(request: NextRequest) {
   try {
@@ -11,7 +12,10 @@ export async function POST(request: NextRequest) {
       value,
       currency = 'USD',
       fbp: bodyFbp,
-      fbc: bodyFbc
+      fbc: bodyFbc,
+      email,
+      phone,
+      externalId
     } = body;
 
     // Validar datos requeridos
@@ -24,9 +28,7 @@ export async function POST(request: NextRequest) {
 
     // Obtener información del navegador y IP
     const userAgent = request.headers.get('user-agent') || undefined;
-    const clientIpAddress = request.headers.get('x-forwarded-for') || 
-                            request.headers.get('x-real-ip') || 
-                            undefined;
+    const clientIpAddress = getClientIpAddress(request);
     
     // Obtener cookies de Facebook si están disponibles
     const cookieFbp = request.cookies.get('_fbp')?.value;
@@ -35,6 +37,9 @@ export async function POST(request: NextRequest) {
     // Priorizar fbc/fbp del body sobre las cookies (más actualizado)
     const fbp = bodyFbp || cookieFbp;
     const fbc = bodyFbc || cookieFbc;
+
+    // Generar external_id si no se proporciona
+    const finalExternalId = externalId || generateExternalId(undefined, undefined, clientIpAddress);
 
     // Enviar evento a la API de conversiones de Meta
     try {
@@ -48,6 +53,9 @@ export async function POST(request: NextRequest) {
         clientIpAddress,
         fbp,
         fbc,
+        email,
+        phone,
+        externalId: finalExternalId,
       });
 
       return NextResponse.json({ success: true, message: 'Evento ViewContent enviado correctamente' });
