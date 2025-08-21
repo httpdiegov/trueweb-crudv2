@@ -24,17 +24,38 @@ export function WhatsAppBuyButton({ href, sku, precio, className }: WhatsAppBuyB
         target="_blank"
         rel="noopener noreferrer"
         onClick={() => {
-          if (typeof window !== 'undefined' && window.fbq) {
-            try {
-              window.fbq('track', 'InitiateCheckout', {
-                num_items: 1,
+          if (typeof window !== 'undefined') {
+            // Enviar evento InitiateCheckout a Meta Conversions API
+            fetch('/api/conversions/initiate-checkout', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                productId: sku,
+                productName: `Producto ${sku}`,
+                category: 'Ropa Vintage',
                 value: precio,
                 currency: 'PEN',
-                contents: [{ id: sku, quantity: 1, item_price: precio }],
-                content_type: 'product',
-              });
-            } catch (err) {
-              console.error('Error al enviar InitiateCheckout desde PDP:', err);
+                quantity: 1
+              })
+            }).catch(error => {
+              console.error('Error al enviar evento InitiateCheckout:', error);
+            });
+            
+            // También enviar al Meta Pixel (frontend)
+            if (window.fbq) {
+              try {
+                window.fbq('track', 'InitiateCheckout', {
+                  num_items: 1,
+                  value: precio,
+                  currency: 'PEN',
+                  contents: [{ id: sku, quantity: 1, item_price: precio }],
+                  content_type: 'product',
+                });
+              } catch (err) {
+                console.error('Error al enviar InitiateCheckout desde PDP:', err);
+              }
             }
           }
         }}

@@ -44,6 +44,9 @@ export function ProductFilterPopover({
   const [selectedUiSizes, setSelectedUiSizes] = useState<string[]>(
     () => getInitialArrayFromParams('size', initialSize)
   );
+  const [availableOnly, setAvailableOnly] = useState<boolean>(
+    () => searchParams.get('available') === 'true'
+  );
 
   const updateUrlParams = useCallback(() => {
     const params = new URLSearchParams(searchParams.toString());
@@ -59,9 +62,15 @@ export function ProductFilterPopover({
     } else {
       params.delete('size');
     }
+
+    if (availableOnly) {
+      params.set('available', 'true');
+    } else {
+      params.delete('available');
+    }
     router.replace(`${pathname}?${params.toString()}`, { scroll: false });
     setIsOpen(false); 
-  }, [selectedCats, selectedUiSizes, router, pathname, searchParams]);
+  }, [selectedCats, selectedUiSizes, availableOnly, router, pathname, searchParams]);
 
   // Efecto para sincronizar con los parámetros iniciales cuando cambian
   useEffect(() => {
@@ -85,6 +94,7 @@ export function ProductFilterPopover({
     if (initialSize === undefined) {
       setSelectedUiSizes(getInitialArrayFromParams('size'));
     }
+    setAvailableOnly(searchParams.get('available') === 'true');
   }, [searchParams, initialCategory, initialSize]);
 
   const handleCategoryToggle = (categoryName: string) => {
@@ -108,6 +118,7 @@ export function ProductFilterPopover({
   const handleClearFilters = () => {
     setSelectedCats([]);
     setSelectedUiSizes([]);
+    setAvailableOnly(false);
   };
   
   const handleApplyFilters = () => {
@@ -179,6 +190,24 @@ export function ProductFilterPopover({
                   {cat.nom_categoria}
                 </Button>
               ))}
+            </div>
+          </div>
+
+          <Separator />
+
+          <div>
+            <h4 className="font-medium text-sm mb-2 text-foreground">Disponibilidad</h4>
+            <div className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                id="available-only"
+                checked={availableOnly}
+                onChange={(e) => setAvailableOnly(e.target.checked)}
+                className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+              />
+              <label htmlFor="available-only" className="text-sm text-foreground cursor-pointer">
+                Solo disponibles
+              </label>
             </div>
           </div>
           

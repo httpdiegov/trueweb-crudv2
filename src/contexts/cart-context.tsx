@@ -61,6 +61,43 @@ export function CartProvider({ children }: { children: ReactNode }) {
       const newItems = [...prevItems, { ...itemWithImages, quantity: 1 }];
       
       console.log('Nuevo estado del carrito:', JSON.stringify(newItems, null, 2));
+      
+      // Enviar evento AddToCart a Meta Conversions API
+      if (typeof window !== 'undefined') {
+        fetch('/api/conversions/add-to-cart', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            productId: itemWithImages.sku,
+            productName: itemWithImages.nombre_prenda,
+            category: 'Ropa Vintage', // Usar categoria por defecto ya que categoria_id es un número
+            value: itemWithImages.precio,
+            currency: 'PEN',
+            quantity: 1
+          })
+        }).catch(error => {
+          console.error('Error al enviar evento AddToCart:', error);
+        });
+        
+        // También enviar al Meta Pixel (frontend)
+        if (window.fbq) {
+          try {
+            window.fbq('track', 'AddToCart', {
+              content_ids: [itemWithImages.sku],
+              content_name: itemWithImages.nombre_prenda,
+              content_category: 'Ropa Vintage', // Usar categoria por defecto ya que categoria_id es un número
+              content_type: 'product',
+              value: itemWithImages.precio,
+              currency: 'PEN'
+            });
+          } catch (err) {
+            console.error('Error al enviar AddToCart al Meta Pixel:', err);
+          }
+        }
+      }
+      
       return newItems;
     });
   };

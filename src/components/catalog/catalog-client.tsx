@@ -41,6 +41,7 @@ export function CatalogClient({
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [selectedSizes, setSelectedSizes] = useState<string[]>([]);
+  const [availableOnly, setAvailableOnly] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -118,7 +119,13 @@ export function CatalogClient({
       console.log(`Después de filtrar por talla (${sizesParams.join(', ')}):`, filtered.length, 'productos');
     }
     
-    // 4. Aplicar filtro de nuevos ingresos si está activado
+    // 4. Aplicar filtro de disponibilidad si está activado
+    if (availableOnly) {
+      filtered = filtered.filter(p => p.stock === 1);
+      console.log('Después de filtrar por disponibilidad:', filtered.length, 'productos');
+    }
+    
+    // 5. Aplicar filtro de nuevos ingresos si está activado
     if (showNewArrivals && dropValue) {
       const dropProducts = filtered.filter(p => p.drop_name === dropValue);
       const nonDropProducts = filtered.filter(p => p.drop_name !== dropValue);
@@ -126,7 +133,7 @@ export function CatalogClient({
       console.log('Después de filtrar por nuevos ingresos:', filtered.length, 'productos');
     }
 
-    // 5. Aplicar ordenación
+    // 6. Aplicar ordenación
     const sorted = [...filtered].sort((a, b) => {
       switch (sortOption) {
         case 'price-asc':
@@ -140,7 +147,7 @@ export function CatalogClient({
     
     console.log('Productos después de aplicar todos los filtros y ordenación:', sorted.length);
     return sorted;
-  }, [products, categoriesParams, sizesParams, showNewArrivals, dropValue, sortOption, searchTerm]);
+  }, [products, categoriesParams, sizesParams, showNewArrivals, dropValue, sortOption, searchTerm, availableOnly]);
   
   // Handle category toggle
   const toggleCategory = (categoryName: string) => {
@@ -225,9 +232,9 @@ export function CatalogClient({
             >
               <Filter className="h-4 w-4" />
               Filtrar Prendas
-              {(selectedCategories.length > 0 || selectedSizes.length > 0) && (
+              {(selectedCategories.length > 0 || selectedSizes.length > 0 || availableOnly) && (
                 <span className="ml-1 h-5 w-5 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs">
-                  {selectedCategories.length + selectedSizes.length}
+                  {selectedCategories.length + selectedSizes.length + (availableOnly ? 1 : 0)}
                 </span>
               )}
             </Button>
@@ -254,6 +261,7 @@ export function CatalogClient({
                             onClick={() => {
                               setSelectedCategories([]);
                               setSelectedSizes([]);
+                              setAvailableOnly(false);
                             }}
                             className="text-sm text-primary hover:bg-transparent hover:text-primary/80 px-2 h-8"
                           >
@@ -299,7 +307,7 @@ export function CatalogClient({
                         </div>
                         
                         {/* Sección de Tallas */}
-                        <div className="space-y-3 pb-4">
+                        <div className="space-y-3">
                           <h4 className="text-sm font-medium text-gray-900 dark:text-white px-1">Tallas</h4>
                           <div className="grid grid-cols-6 gap-2">
                             {sizes.map((size) => (
@@ -322,6 +330,27 @@ export function CatalogClient({
                                 </Label>
                               </div>
                             ))}
+                          </div>
+                        </div>
+                        
+                        {/* Sección de Disponibilidad */}
+                        <div className="space-y-3 pb-4">
+                          <h4 className="text-sm font-medium text-gray-900 dark:text-white px-1">Disponibilidad</h4>
+                          <div className="space-y-2">
+                            <div className="flex items-center space-x-3 py-1.5 px-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800/50">
+                              <Checkbox 
+                                id="available-only"
+                                checked={availableOnly}
+                                onCheckedChange={(checked) => setAvailableOnly(checked as boolean)}
+                                className="h-5 w-5 rounded-md border-gray-300 text-primary focus:ring-primary"
+                              />
+                              <Label 
+                                htmlFor="available-only" 
+                                className="text-sm font-normal text-gray-900 dark:text-gray-100 cursor-pointer flex-1"
+                              >
+                                Solo disponibles
+                              </Label>
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -456,10 +485,11 @@ async function FilteredProductList({
     return paramValue.split(',').filter(Boolean);
   };
 
-  // Apply category and size filters from URL
-  const { category, size } = searchParams;
+  // Apply category, size, and availability filters from URL
+  const { category, size, available } = searchParams;
   const categoriesParams = getArrayFromParam(category);
   const sizesParams = getArrayFromParam(size);
+  const availableOnly = available === 'true';
   
   // Debug logs
   console.log('Categories from URL:', categoriesParams);
@@ -480,6 +510,14 @@ async function FilteredProductList({
       return matches;
     });
     console.log('After size filter:', filteredProducts.length);
+  }
+  
+  if (availableOnly) {
+    filteredProducts = filteredProducts.filter(p => {
+      // Producto disponible si tiene stock exactamente igual a 1 (stock único)
+      return p.stock === 1;
+    });
+    console.log('After availability filter:', filteredProducts.length);
   }
   
   return <ProductList 

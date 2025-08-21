@@ -71,14 +71,14 @@ export default function RootLayout({
           t.src=v;s=b.getElementsByTagName(e)[0];
           s.parentNode.insertBefore(t,s)}(window, document,'script',
           'https://connect.facebook.net/en_US/fbevents.js');
-          fbq('init', '1311704343823236');
+          fbq('init', '539606589202788');
           fbq('track', 'PageView');`}
         </script>
       </head>
       <body className="font-body antialiased min-h-screen flex flex-col bg-background text-foreground transition-colors duration-200">
         {/* Meta Pixel (noscript) */}
         <noscript>
-          <img height="1" width="1" style={{ display: 'none' }} src="https://www.facebook.com/tr?id=1311704343823236&ev=PageView&noscript=1" alt="" />
+          <img height="1" width="1" style={{ display: 'none' }} src="https://www.facebook.com/tr?id=539606589202788&ev=PageView&noscript=1" alt="" />
         </noscript>
         <ThemeProvider>
           <ToastProvider>
