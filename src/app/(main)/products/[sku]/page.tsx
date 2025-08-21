@@ -12,7 +12,73 @@ import { WhatsAppBuyButton } from '@/components/product/whatsapp-buy-button';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import type { Imagen } from '@/types';
+import type { Metadata } from 'next';
 import { ProductPageClient } from '@/components/product/product-page-client';
+
+// Función para generar metadata dinámica con Open Graph
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ sku: string }>
+}): Promise<Metadata> {
+  try {
+    const { sku } = await params;
+    const prenda = await fetchProductById(sku);
+    
+    if (!prenda) {
+      return {
+        title: 'Producto no encontrado - True Vintage',
+        description: 'El producto que buscas no está disponible.',
+      };
+    }
+
+    // Obtener la primera imagen disponible del producto
+    const primaryImage = prenda.imagenes && prenda.imagenes.length > 0 
+      ? prenda.imagenes[0].url_imagen 
+      : '/placeholder-product.jpg';
+    
+    // Asegurar que la URL de la imagen sea absoluta
+    const imageUrl = primaryImage.startsWith('http') 
+      ? primaryImage 
+      : `https://truevintage.pe${primaryImage}`;
+    
+    const productUrl = `https://truevintage.pe/products/${prenda.sku}`;
+    const description = `${prenda.nombre_prenda} - ${prenda.categoria_nombre || 'Ropa Vintage'} | Precio: S/${prenda.precio.toFixed(2)} | True Vintage Perú`;
+
+    return {
+      title: `${prenda.nombre_prenda} - True Vintage`,
+      description,
+      openGraph: {
+        title: prenda.nombre_prenda,
+        description,
+        url: productUrl,
+        siteName: 'True Vintage',
+        images: [
+          {
+            url: imageUrl,
+            width: 1200,
+            height: 630,
+            alt: prenda.nombre_prenda,
+          },
+        ],
+        locale: 'es_PE',
+        type: 'website',
+      },
+      twitter: {
+        card: 'summary_large_image',
+        title: prenda.nombre_prenda,
+        description,
+        images: [imageUrl],
+      },
+    };
+  } catch (error) {
+    console.error('Error generando metadata:', error);
+    return {
+      title: 'True Vintage - Ropa Vintage',
+      description: 'Tienda online de ropa vintage en Perú',
+    };
+  }
+}
 
 
 
