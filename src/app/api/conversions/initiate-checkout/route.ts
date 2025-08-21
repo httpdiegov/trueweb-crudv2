@@ -15,6 +15,7 @@ export async function POST(request: NextRequest) {
       fbc: bodyFbc,
       email,
       phone,
+      firstName,
       externalId
     } = body;
 
@@ -55,6 +56,7 @@ export async function POST(request: NextRequest) {
         fbc,
         email,
         phone,
+        firstName,
         externalId: finalExternalId,
       });
 

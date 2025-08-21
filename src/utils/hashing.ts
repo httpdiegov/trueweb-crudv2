@@ -65,6 +65,37 @@ export function hashPhone(phone: string | null | undefined): string | null {
 }
 
 /**
+ * Normaliza y hashea un nombre con SHA-256 para Meta Conversions API
+ * Según Meta: Mejora la calidad de coincidencias para targeting
+ * @param firstName - Nombre a hashear
+ * @returns Nombre hasheado con SHA-256 o null si es inválido
+ */
+export function hashFirstName(firstName: string | null | undefined): string | null {
+  if (!firstName || typeof firstName !== 'string') {
+    return null;
+  }
+
+  // Normalizar nombre según las especificaciones de Meta:
+  // 1. Convertir a minúsculas
+  // 2. Remover espacios extra al inicio y final
+  // 3. Remover caracteres especiales y números
+  const normalizedName = firstName
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-záéíóúñü\s]/gi, '') // Permitir caracteres latinos
+    .replace(/\s+/g, ' ') // Normalizar espacios múltiples
+    .trim();
+
+  // Validar que el nombre tenga al menos 1 carácter válido
+  if (normalizedName.length === 0) {
+    return null;
+  }
+
+  // Hashear con SHA-256
+  return crypto.createHash('sha256').update(normalizedName).digest('hex');
+}
+
+/**
  * Genera un external_id único basado en la sesión o datos del usuario
  * Según Meta: +5.83% aumento en conversiones adicionales registradas
  * @param userId - ID del usuario si está disponible

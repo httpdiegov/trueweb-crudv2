@@ -15,6 +15,7 @@ export async function POST(request: NextRequest) {
       fbc: bodyFbc,
       email, // Email sin hashear (se hasheará en sendAddToCartEvent)
       phone, // Teléfono sin hashear (se hasheará en sendAddToCartEvent)
+      firstName, // Nombre sin hashear (se hasheará en sendAddToCartEvent)
       externalId: bodyExternalId,
       userId,
       sessionId
@@ -57,6 +58,7 @@ export async function POST(request: NextRequest) {
         fbc,
         email, // Se hasheará automáticamente en la función
         phone, // Se hasheará automáticamente en la función
+        firstName, // Se hasheará automáticamente en la función
         externalId,
       });
 

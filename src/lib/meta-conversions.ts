@@ -1,4 +1,4 @@
-import { hashEmail, hashPhone, validateExternalId } from '@/utils/hashing';
+import { hashEmail, hashPhone, hashFirstName, validateExternalId } from '@/utils/hashing';
 import { NextRequest } from 'next/server';
 
 // Configuración para la API de conversiones de Meta
@@ -69,6 +69,7 @@ export interface ConversionEventData {
   fbc?: string; // Facebook click ID (+54.7% conversiones)
   email?: string; // Email hasheado SHA-256 (+42.4% conversiones)
   phone?: string; // Teléfono hasheado SHA-256 (+11.56% conversiones)
+  firstName?: string; // Nombre hasheado SHA-256 (mejora coincidencias)
   externalId?: string; // Identificador externo (+5.83% conversiones)
   value?: number;
   currency?: string;
@@ -102,6 +103,7 @@ export async function sendConversionEvent(
           ...(eventData.fbc && { fbc: eventData.fbc }),
           ...(eventData.email && { em: eventData.email }),
           ...(eventData.phone && { ph: eventData.phone }),
+          ...(eventData.firstName && { fn: eventData.firstName }),
           ...(eventData.externalId && { external_id: eventData.externalId })
         },
         custom_data: {
@@ -151,6 +153,7 @@ export async function sendAddToCartEvent(productData: {
   fbc?: string;
   email?: string; // Email sin hashear (se hasheará automáticamente)
   phone?: string; // Teléfono sin hashear (se hasheará automáticamente)
+  firstName?: string; // Nombre sin hashear (se hasheará automáticamente)
   externalId?: string;
 }): Promise<void> {
   return sendConversionEvent('AddToCart', {
@@ -160,6 +163,7 @@ export async function sendAddToCartEvent(productData: {
     fbc: productData.fbc,
     email: hashEmail(productData.email) || undefined,
     phone: hashPhone(productData.phone) || undefined,
+    firstName: hashFirstName(productData.firstName) || undefined,
     externalId: validateExternalId(productData.externalId) || undefined,
     contentIds: [productData.productId],
     contentType: 'product',
@@ -183,6 +187,7 @@ export async function sendViewContentEvent(productData: {
   fbc?: string;
   email?: string; // Email sin hashear (se hasheará automáticamente)
   phone?: string; // Teléfono sin hashear (se hasheará automáticamente)
+  firstName?: string; // Nombre sin hashear (se hasheará automáticamente)
   externalId?: string;
 }): Promise<void> {
   return sendConversionEvent('ViewContent', {
@@ -192,6 +197,7 @@ export async function sendViewContentEvent(productData: {
     fbc: productData.fbc,
     email: hashEmail(productData.email) || undefined,
     phone: hashPhone(productData.phone) || undefined,
+    firstName: hashFirstName(productData.firstName) || undefined,
     externalId: validateExternalId(productData.externalId) || undefined,
     contentIds: [productData.productId],
     contentType: 'product',
@@ -214,6 +220,7 @@ export async function sendInitiateCheckoutEvent(productData: {
   fbc?: string;
   email?: string; // Email sin hashear (se hasheará automáticamente)
   phone?: string; // Teléfono sin hashear (se hasheará automáticamente)
+  firstName?: string; // Nombre sin hashear (se hasheará automáticamente)
   externalId?: string;
 }): Promise<void> {
   return sendConversionEvent('InitiateCheckout', {
@@ -223,6 +230,7 @@ export async function sendInitiateCheckoutEvent(productData: {
     fbc: productData.fbc,
     email: hashEmail(productData.email) || undefined,
     phone: hashPhone(productData.phone) || undefined,
+    firstName: hashFirstName(productData.firstName) || undefined,
     externalId: validateExternalId(productData.externalId) || undefined,
     contentIds: [productData.productId],
     contentType: 'product',
@@ -231,5 +239,31 @@ export async function sendInitiateCheckoutEvent(productData: {
     value: productData.value,
     currency: productData.currency || 'USD',
     numItems: 1
+  });
+}
+
+// Función para el evento Search
+export async function sendSearchEvent(searchData: {
+  searchTerm: string;
+  userAgent?: string;
+  clientIpAddress?: string;
+  fbp?: string;
+  fbc?: string;
+  email?: string; // Email sin hashear (se hasheará automáticamente)
+  phone?: string; // Teléfono sin hashear (se hasheará automáticamente)
+  firstName?: string; // Nombre sin hashear (se hasheará automáticamente)
+  externalId?: string;
+}): Promise<void> {
+  return sendConversionEvent('Search', {
+    userAgent: searchData.userAgent,
+    clientIpAddress: searchData.clientIpAddress,
+    fbp: searchData.fbp,
+    fbc: searchData.fbc,
+    email: hashEmail(searchData.email) || undefined,
+    phone: hashPhone(searchData.phone) || undefined,
+    firstName: hashFirstName(searchData.firstName) || undefined,
+    externalId: validateExternalId(searchData.externalId) || undefined,
+    contentName: searchData.searchTerm,
+    contentType: 'search'
   });
 }
