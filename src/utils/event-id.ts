@@ -52,7 +52,14 @@ export function generateViewContentEventId(
   productSku: string,
   timestamp?: number
 ): string {
-  return generateEventId('ViewContent', productSku.replace(/[^a-zA-Z0-9]/g, '_'), timestamp);
+  // Generar un ID más único incluyendo información adicional
+  const ts = timestamp || Date.now();
+  const randomSuffix = Math.random().toString(36).substring(2, 8);
+  const sessionId = typeof window !== 'undefined' ? 
+    (sessionStorage.getItem('session_id') || 'unknown') : 'server';
+  const cleanProductSku = productSku.replace(/[^a-zA-Z0-9]/g, '_');
+  
+  return `ViewContent_${cleanProductSku}_${sessionId}_${ts}_${randomSuffix}`;
 }
 
 /**

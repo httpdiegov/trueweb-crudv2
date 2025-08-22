@@ -146,10 +146,12 @@ export async function sendConversionEvent(
         // Event ID para deduplicación (nivel principal)
         ...(eventData.eventId && { event_id: eventData.eventId }),
         user_data: {
+          // Datos básicos de usuario
           ...(eventData.userAgent && { client_user_agent: eventData.userAgent }),
           ...(eventData.clientIpAddress && { client_ip_address: eventData.clientIpAddress }),
           ...(eventData.fbp && { fbp: eventData.fbp }),
           ...(eventData.fbc !== undefined && { fbc: eventData.fbc }),
+          // Datos hasheados para mejor privacidad y coincidencia
           ...(eventData.email !== undefined && { em: [eventData.email] }),
           ...(eventData.phone !== undefined && { ph: [eventData.phone] }),
           ...(eventData.firstName !== undefined && { fn: [eventData.firstName] }),

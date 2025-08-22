@@ -45,15 +45,24 @@ export function ProductPageClient({ product }: ProductPageClientProps) {
     sendViewContent();
 
     // También disparar evento ViewContent al Meta Pixel (frontend)
-    if (typeof window !== 'undefined' && window.fbq && process.env.NEXT_PUBLIC_META_PIXEL_ID) {
-      window.fbq('trackSingle', process.env.NEXT_PUBLIC_META_PIXEL_ID, 'ViewContent', {
+    if (typeof window !== 'undefined' && window.fbq) {
+      // Obtener datos de usuario para Advanced Matching
+      const trackingData = getFacebookTrackingData();
+      
+      window.fbq('track', 'ViewContent', {
         content_type: 'product',
         content_ids: [product.sku],
         content_name: product.nombre_prenda,
         content_category: product.categoria_nombre || 'Vintage',
         value: product.precio,
-        currency: 'PEN',
-        eventID: eventId // Event ID para deduplicación
+        currency: 'PEN'
+      }, {
+        eventID: eventId, // Event ID para deduplicación
+        // Advanced Matching manual para mejorar la atribución
+        em: trackingData.email ? trackingData.email.toLowerCase().trim() : undefined,
+        ph: trackingData.phone ? trackingData.phone.replace(/[^0-9]/g, '') : undefined,
+        fn: trackingData.firstName ? trackingData.firstName.toLowerCase().trim() : undefined,
+        external_id: trackingData.externalId
       });
     }
   }, [product]);

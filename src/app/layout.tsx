@@ -3,6 +3,7 @@ import './globals.css';
 import { ToastProvider } from '@/components/providers/toast-provider';
 import { ThemeProvider } from '@/components/theme/theme-provider';
 import { FacebookTrackingInit } from '@/components/tracking/facebook-tracking-init';
+import SessionInit from '@/components/tracking/session-init';
 
 export const metadata: Metadata = {
   title: 'True Vintage Perú | Ropa Vintage Americana y Segunda Mano en Lima',
@@ -104,8 +105,21 @@ export default function RootLayout({
               t.src=v;s=b.getElementsByTagName(e)[0];
               s.parentNode.insertBefore(t,s)}(window, document,'script',
               'https://connect.facebook.net/en_US/fbevents.js');
-              fbq('init', '${process.env.META_PIXEL_ID}');
-              fbq('track', 'PageView');
+              
+              // Inicializar Meta Pixel con Advanced Matching
+              fbq('init', '${process.env.META_PIXEL_ID}', {
+                em: 'automatic', // Automatic Advanced Matching para email
+                ph: 'automatic', // Automatic Advanced Matching para teléfono
+                fn: 'automatic', // Automatic Advanced Matching para nombre
+                external_id: 'automatic' // Automatic Advanced Matching para external_id
+              });
+              
+              // Configurar deduplicación automática
+              fbq('set', 'autoConfig', false, '${process.env.META_PIXEL_ID}');
+              
+              // Track PageView con eventID para deduplicación
+              const pageViewEventId = 'PageView_' + Date.now() + '_' + Math.random().toString(36).substring(2, 8);
+              fbq('track', 'PageView', {}, { eventID: pageViewEventId });
             `,
           }}
         />
@@ -117,6 +131,7 @@ export default function RootLayout({
         </noscript>
         <ThemeProvider>
           <ToastProvider>
+            <SessionInit />
             <FacebookTrackingInit />
             {children}
           </ToastProvider>
