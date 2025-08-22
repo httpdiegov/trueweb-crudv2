@@ -174,7 +174,7 @@ export function CatalogClient({
   };
 
   return (
-    <div className="container mx-auto max-w-screen-2xl px-2 py-4 sm:px-4 sm:py-6 md:px-6 md:py-8">
+    <div className="container mx-auto max-w-none py-4 sm:py-6 md:py-8 px-6 sm:px-8 lg:px-12 xl:px-16">
       <div className="flex flex-col md:flex-row justify-end items-start md:items-center mb-6 gap-4">
         <div className="flex items-center gap-2">
           {/* Icono de búsqueda */}
@@ -446,7 +446,7 @@ export function CatalogClient({
 
 function ProductListLoadingSkeleton() {
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 md:gap-4">
+    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-x-4 gap-y-6 sm:gap-x-6 sm:gap-y-8">
       {Array.from({ length: 12 }).map((_, i) => (
         <div key={i} className="flex flex-col space-y-2">
           <Skeleton className="h-[280px] w-full sm:h-[320px] md:h-[350px]" />
