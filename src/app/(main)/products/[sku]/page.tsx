@@ -112,17 +112,14 @@ export default async function ProductDetailPage({
       notFound();
     }
     
-    // Usar el dominio truevintage.pe para el enlace
-    const productUrl = `https://truevintage.pe/products/${prenda.sku}`;
-    
-  const whatsappMessage = encodeURIComponent(
-`Hola, quisiera adquirir la prenda:
+  // Usar el dominio truevintage.pe para el enlace
+  const productUrl = `https://truevintage.pe/products/${prenda.sku}`;
 
-*${prenda.nombre_prenda}* (SKU: ${prenda.sku})
-Precio: S/${prenda.precio.toFixed(2)}
+  // Mensajes diferenciados según estado separado
+  const whatsappMessageDisponible = `Hola, quisiera adquirir la prenda:\n\n*${prenda.nombre_prenda}* (SKU: ${prenda.sku})\nPrecio: S/${prenda.precio.toFixed(2)}\n\nEnlace directo: ${productUrl}`;
+  const whatsappMessageSeparado = `Hola, estoy interesad@ en la prenda *${prenda.nombre_prenda}* (SKU: ${prenda.sku}), veo que está separada. ¿Me podrías avisar si se libera?\n\nEnlace directo: ${productUrl}`;
 
-Enlace directo: ${productUrl}`
-  );
+  const whatsappMessage = encodeURIComponent(prenda.separado === 1 ? whatsappMessageSeparado : whatsappMessageDisponible);
   const whatsappLink = `https://wa.me/51940866278?text=${whatsappMessage}`;
 
     // Solo usar imágenes a color para la galería de detalles
