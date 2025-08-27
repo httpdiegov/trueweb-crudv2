@@ -30,7 +30,7 @@ const nextConfig: NextConfig = {
     // con la propiedad 'quality' en el componente Image
     // Ejemplo: <Image src="..." quality={90} ... />
   },
-  async redirects() {
+/*   async redirects() {
     return [
       {
         source: '/nuevo-ingreso', // La URL antigua
@@ -62,11 +62,8 @@ const nextConfig: NextConfig = {
         destination: '/', // o manejar dinámicamente
         permanent: true,
       }
-
-
-      // Puedes añadir más redirecciones aquí si encuentras otras URLs antiguas
     ]
-  },
+  }, */
   async headers() {
     return [
       {
