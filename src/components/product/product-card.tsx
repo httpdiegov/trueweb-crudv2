@@ -246,10 +246,13 @@ export function ProductCard({ prenda }: ProductCardProps) {
         <h3 className="text-xs sm:text-sm font-medium text-foreground truncate group-hover:underline">
           {prenda.nombre_prenda}
         </h3>
-        {prenda.talla_nombre && (
-           <p className="text-xs text-muted-foreground mt-0.5">{prenda.talla_nombre}</p>
+        {prenda.talla_nombre ? (
+          <p className="text-xs text-muted-foreground mt-0.5">
+            {prenda.talla_nombre} - S/{prenda.precio.toFixed(2)}
+          </p>
+        ) : (
+          <p className="text-sm font-semibold text-foreground mt-0.5">S/{prenda.precio.toFixed(2)}</p>
         )}
-        <p className="text-sm font-semibold text-foreground mt-0.5">S/{prenda.precio.toFixed(2)}</p>
       </div>
     </Link>
   );
