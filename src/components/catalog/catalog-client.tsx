@@ -427,6 +427,13 @@ export function CatalogClient({
         </div>
       </div>
       
+      {/* Texto instructivo solo para móviles */}
+      <div className="sm:hidden text-center mb-4">
+        <p className="text-xs text-muted-foreground">
+          Desliza hacia la izquierda para ver más prendas...
+        </p>
+      </div>
+      
       <section>
         {isLoading ? (
           <ProductListLoadingSkeleton />
