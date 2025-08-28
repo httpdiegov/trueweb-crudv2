@@ -177,6 +177,13 @@ export function CatalogClient({
     <div className="container mx-auto max-w-none py-4 sm:py-6 md:py-8 px-6 sm:px-8 lg:px-12 xl:px-16">
       <div className="flex flex-col md:flex-row justify-end items-start md:items-center mb-6 gap-4">
         <div className="flex items-center gap-2">
+          {/* Texto instructivo solo para móviles - al lado de los botones */}
+          <div className="sm:hidden">
+            <p className="text-xs text-muted-foreground mr-2">
+              Desliza hacia la izquierda para ver más prendas...
+            </p>
+          </div>
+          
           {/* Icono de búsqueda */}
           <div className="relative">
             <Button 
@@ -425,13 +432,6 @@ export function CatalogClient({
             </Button>
           )}
         </div>
-      </div>
-      
-      {/* Texto instructivo solo para móviles */}
-      <div className="sm:hidden text-center mb-4">
-        <p className="text-xs text-muted-foreground">
-          Desliza hacia la izquierda para ver más prendas...
-        </p>
       </div>
       
       <section>
