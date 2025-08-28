@@ -3,8 +3,7 @@
 import type { Prenda } from '@/types';
 import { ProductCard } from './product-card';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Sparkles, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Sparkles } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
 interface ProductListProps {
@@ -41,14 +40,6 @@ export function ProductList({ prendas, showNewArrivals = false, dropValue = '' }
     const startIndex = currentPage * itemsPerPage;
     const currentItems = prendas.slice(startIndex, startIndex + itemsPerPage);
 
-    const goToNext = () => {
-      setCurrentPage((prev) => (prev + 1) % totalPages);
-    };
-
-    const goToPrev = () => {
-      setCurrentPage((prev) => (prev - 1 + totalPages) % totalPages);
-    };
-
     // Funciones para manejar el deslizamiento táctil
     const handleTouchStart = (e: React.TouchEvent) => {
       setTouchStart(e.targetTouches[0].clientX);
@@ -66,10 +57,10 @@ export function ProductList({ prendas, showNewArrivals = false, dropValue = '' }
       const isRightSwipe = distance < -50;
 
       if (isLeftSwipe && totalPages > 1) {
-        goToNext();
+        setCurrentPage((prev) => (prev + 1) % totalPages);
       }
       if (isRightSwipe && totalPages > 1) {
-        goToPrev();
+        setCurrentPage((prev) => (prev - 1 + totalPages) % totalPages);
       }
     };
 
@@ -104,40 +95,16 @@ export function ProductList({ prendas, showNewArrivals = false, dropValue = '' }
           }
         </div>
 
-        {/* Controles de navegación */}
+        {/* Indicadores de página */}
         {totalPages > 1 && (
           <>
-            {/* Botón anterior */}
-            <Button
-              variant="outline"
-              size="icon"
-              className="absolute left-2 top-1/2 transform -translate-y-1/2 z-20 bg-white/90 backdrop-blur-sm shadow-lg hover:bg-white"
-              onClick={goToPrev}
-              disabled={currentPage === 0}
-            >
-              <ChevronLeft className="h-4 w-4" />
-            </Button>
-
-            {/* Botón siguiente */}
-            <Button
-              variant="outline"
-              size="icon"
-              className="absolute right-2 top-1/2 transform -translate-y-1/2 z-20 bg-white/90 backdrop-blur-sm shadow-lg hover:bg-white"
-              onClick={goToNext}
-              disabled={currentPage === totalPages - 1}
-            >
-              <ChevronRight className="h-4 w-4" />
-            </Button>
-
-            {/* Indicadores de página */}
             <div className="flex justify-center mt-4 gap-2">
               {Array.from({ length: totalPages }).map((_, index) => (
-                <button
+                <div
                   key={index}
                   className={`w-2 h-2 rounded-full transition-colors ${
                     index === currentPage ? 'bg-primary' : 'bg-gray-300'
                   }`}
-                  onClick={() => setCurrentPage(index)}
                 />
               ))}
             </div>
