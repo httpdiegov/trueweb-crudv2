@@ -186,11 +186,11 @@ export function CatalogClient({
               onClick={() => setIsSearchOpen(!isSearchOpen)}
             >
               <Search className="h-4 w-4" />
-              Buscar
+              <span className="hidden sm:inline">Buscar</span>
             </Button>
             
             {isSearchOpen && (
-              <div className="absolute right-0 mt-2 w-80 p-4 rounded-md shadow-lg bg-white dark:bg-gray-800 ring-1 ring-black ring-opacity-5 z-50">
+              <div className="absolute left-1/2 transform -translate-x-2/2 sm:left-auto sm:right-0 sm:transform-none sm:translate-x-0 mt-2 w-72 sm:w-80 p-4 rounded-md shadow-lg bg-white dark:bg-gray-800 ring-1 ring-black ring-opacity-5 z-50">
                 <div className="space-y-3">
                   <h4 className="text-sm font-medium text-gray-900 dark:text-white">Buscar productos</h4>
                   <Input
@@ -232,7 +232,7 @@ export function CatalogClient({
               onClick={() => setIsFilterOpen(!isFilterOpen)}
             >
               <Filter className="h-4 w-4" />
-              Filtrar Prendas
+              <span className="hidden sm:inline">Filtrar Prendas</span>
               {(selectedCategories.length > 0 || selectedSizes.length > 0 || availableOnly) && (
                 <span className="ml-1 h-5 w-5 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs">
                   {selectedCategories.length + selectedSizes.length + (availableOnly ? 1 : 0)}
@@ -371,11 +371,11 @@ export function CatalogClient({
               onClick={() => setIsSortOpen(!isSortOpen)}
             >
               <ArrowUpDown className="h-4 w-4" />
-              Ordenar
+              <span className="hidden sm:inline">Ordenar</span>
               <ChevronDown className={`h-4 w-4 transition-transform ${isSortOpen ? 'rotate-180' : ''}`} />
             </Button>
             {isSortOpen && (
-              <div className="absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white dark:bg-gray-800 ring-1 ring-black ring-opacity-5 z-50">
+              <div className="absolute left-1/2 transform -translate-x-1/2 sm:left-auto sm:right-0 sm:transform-none sm:translate-x-0 mt-2 w-64 sm:w-48 rounded-md shadow-lg bg-white dark:bg-gray-800 ring-1 ring-black ring-opacity-5 z-50">
                 <div className="py-1" role="menu" aria-orientation="vertical">
                   <button
                     onClick={() => {
