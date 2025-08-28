@@ -134,15 +134,21 @@ export function CatalogClient({
       console.log('Después de filtrar por nuevos ingresos:', filtered.length, 'productos');
     }
 
-    // 6. Aplicar ordenación
+    // 6. Aplicar ordenación con prioridad para prendas disponibles
     const sorted = [...filtered].sort((a, b) => {
+      // Primero ordenar por disponibilidad: disponibles (stock=1) antes que vendidas (stock=0)
+      if (a.stock !== b.stock) {
+        return b.stock - a.stock; // stock=1 viene antes que stock=0
+      }
+      
+      // Luego aplicar el criterio de ordenación seleccionado
       switch (sortOption) {
         case 'price-asc':
           return a.precio - b.precio;
         case 'price-desc':
           return b.precio - a.precio;
         default:
-          return 0; // Orden predeterminado (sin ordenamiento específico)
+          return 0; // Orden predeterminado (sin ordenamiento específico adicional)
       }
     });
     
