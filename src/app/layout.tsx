@@ -1,9 +1,11 @@
 import type { Metadata } from 'next';
 import './globals.css';
+
 import { ToastProvider } from '@/components/providers/toast-provider';
 import { ThemeProvider } from '@/components/theme/theme-provider';
 import { FacebookTrackingInit } from '@/components/tracking/facebook-tracking-init';
 import SessionInit from '@/components/tracking/session-init';
+import GlobalErrorScreen from '@/components/ui/GlobalErrorScreen';
 
 export const metadata: Metadata = {
   title: 'True Vintage Perú | Ropa Vintage Americana y Segunda Mano en Lima',
@@ -129,6 +131,9 @@ export default function RootLayout({
         <noscript>
           <img height="1" width="1" style={{ display: 'none' }} src={`https://www.facebook.com/tr?id=${process.env.META_PIXEL_ID}&ev=PageView&noscript=1`} alt="" />
         </noscript>
+        {/* Pantalla de error global siempre visible (para pruebas, poner condicional según estado de error real) */}
+        <GlobalErrorScreen />
+        {/*
         <ThemeProvider>
           <ToastProvider>
             <SessionInit />
@@ -136,6 +141,7 @@ export default function RootLayout({
             {children}
           </ToastProvider>
         </ThemeProvider>
+        */}
       </body>
     </html>
   );
