@@ -131,8 +131,8 @@ export default function RootLayout({
         <noscript>
           <img height="1" width="1" style={{ display: 'none' }} src={`https://www.facebook.com/tr?id=${process.env.META_PIXEL_ID}&ev=PageView&noscript=1`} alt="" />
         </noscript>
-        {/* Pantalla de error global siempre visible (para pruebas, poner condicional según estado de error real) */}
-        <GlobalErrorScreen />
+        {/* Pantalla de error global siempre visible (para pruebas, poner condicional según estado de error real) <GlobalErrorScreen /> */}
+        
         {/*
         <ThemeProvider>
           <ToastProvider>
