@@ -32,6 +32,11 @@ export function ProductList({ prendas, showNewArrivals = false, dropValue = '' }
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
+  // Resetear a página 1 cuando cambien las prendas (filtros aplicados)
+  useEffect(() => {
+    setCurrentPage(0);
+  }, [prendas]);
+
   if (!prendas || prendas.length === 0) {
     return <p className="col-span-full text-center text-muted-foreground py-10">No se encontraron productos.</p>;
   }
@@ -112,7 +117,7 @@ export function ProductList({ prendas, showNewArrivals = false, dropValue = '' }
       setDragOffset(0);
       setTouchStart({ x: 0, y: 0 });
       setTouchDirection(null);
-      setTimeout(() => setIsAnimating(false), 300);
+      setTimeout(() => setIsAnimating(false), 150);
     };
 
     return (
@@ -124,7 +129,7 @@ export function ProductList({ prendas, showNewArrivals = false, dropValue = '' }
           onTouchEnd={handleTouchEnd}
         >
           <div 
-            className="grid grid-cols-2 gap-4 px-4 transition-all duration-300 ease-out"
+            className="grid grid-cols-2 gap-4 px-4 transition-all duration-150 ease-out"
             style={{
               transform: `translateX(${isDragging && touchDirection === 'horizontal' ? -dragOffset * 0.3 : 0}px)`,
               opacity: isAnimating ? 0.7 : 1
@@ -163,7 +168,7 @@ export function ProductList({ prendas, showNewArrivals = false, dropValue = '' }
             {Array.from({ length: totalPages }).map((_, index) => (
               <div
                 key={index}
-                className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                className={`w-2 h-2 rounded-full transition-all duration-150 ${
                   index === currentPage ? 'bg-blue-500 scale-125' : 'bg-gray-300'
                 }`}
               />
