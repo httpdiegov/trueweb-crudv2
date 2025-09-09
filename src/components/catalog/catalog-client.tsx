@@ -184,11 +184,7 @@ export function CatalogClient({
       <div className="flex flex-col md:flex-row justify-end items-start md:items-center mb-6 gap-4">
         <div className="flex items-center gap-2">
           {/* Texto instructivo solo para móviles - al lado de los botones */}
-          <div className="sm:hidden">
-            <p className="text-xs text-muted-foreground mr-2">
-              Desliza hacia la izquierda para ver más prendas...
-            </p>
-          </div>
+          {/* ...eliminado texto de deslizar... */}
           
           {/* Icono de búsqueda */}
           <div className="relative">

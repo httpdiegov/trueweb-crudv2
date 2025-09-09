@@ -140,7 +140,7 @@ export function ProductCard({ prenda }: ProductCardProps) {
       className="block group"
 
     >
-      <div className="relative w-full overflow-hidden bg-transparent aspect-square group transition-all duration-300 hover:drop-shadow-2xl hover:shadow-xl">
+  <div className="relative w-full overflow-hidden bg-transparent aspect-square group transition-all duration-300">
         {imageState.isLoading && !imageState.error && (
           <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
             <div className="w-8 h-8 border-2 border-gray-300 border-t-blue-500 rounded-full animate-spin"></div>
@@ -151,10 +151,13 @@ export function ProductCard({ prenda }: ProductCardProps) {
           src={imageState.url}
           alt={prenda.nombre_prenda || 'Producto'}
           fill
-          className={`object-cover transition-all duration-300 ${imageState.isLoading ? 'opacity-0' : 'opacity-100'} group-hover:drop-shadow-2xl`}
+          className={`object-cover transition-all duration-300 ${imageState.isLoading ? 'opacity-0' : 'opacity-100'}`}
           sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
           quality={100}
           unoptimized={process.env.NODE_ENV === 'development'}
+          style={{ transition: 'filter 0.3s', filter: undefined }}
+          onMouseEnter={e => { e.currentTarget.style.filter = 'drop-shadow(0 2px 8px rgba(0,0,0,0.35))'; }}
+          onMouseLeave={e => { e.currentTarget.style.filter = ''; }}
           onLoad={() => {
             setImageState(prev => ({ ...prev, isLoading: false }));
           }}
@@ -243,7 +246,7 @@ export function ProductCard({ prenda }: ProductCardProps) {
         )}
       </div>
       <div className="mt-2 text-center">
-        <h3 className="text-xs sm:text-sm font-medium text-foreground truncate group-hover:underline">
+  <h3 className="text-xs sm:text-sm font-medium text-foreground truncate">
           {prenda.nombre_prenda}
         </h3>
         {prenda.talla_nombre ? (
