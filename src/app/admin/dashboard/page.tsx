@@ -56,24 +56,24 @@ export default function AdminDashboardPage() {
           title="Productos"
           description="Gestiona los productos de tu tienda"
           icon={<Package className="h-6 w-6" />}
-          viewHref="/admin/dashboard/products"
-          createHref="/admin/dashboard/products/new"
+          viewHref="/admin/products"
+          createHref="/admin/products/new"
         />
         
         <DashboardCard
           title="Marcas"
           description="Administra las marcas de tus productos"
           icon={<Tag className="h-6 w-6" />}
-          viewHref="/admin/dashboard/brands"
-          createHref="/admin/dashboard/brands/new"
+          viewHref="/admin/brands"
+          createHref="/admin/brands/new"
         />
         
         <DashboardCard
           title="Categorías"
           description="Gestiona las categorías de productos"
           icon={<List className="h-6 w-6" />}
-          viewHref="/admin/dashboard/categories"
-          createHref="/admin/dashboard/categories/new"
+          viewHref="/admin/categories"
+          createHref="/admin/categories/new"
         />
       </div>
     </div>

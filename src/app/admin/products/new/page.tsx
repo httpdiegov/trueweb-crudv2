@@ -5,7 +5,7 @@ import { createProduct } from '@/app/actions/product-actions';
 // createProduct ahora espera FormData, ProductForm se encarga de esto.
 export default function NewProductPage() {
   return (
-    <div>
+    <div className="p-6 max-w-6xl mx-auto">
       <ProductForm 
         onSubmitAction={createProduct} 
         isEditing={false} 

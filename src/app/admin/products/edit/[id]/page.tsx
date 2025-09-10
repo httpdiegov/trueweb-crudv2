@@ -108,7 +108,7 @@ export default function EditProductPage() {
   }
 
   return (
-    <div>
+    <div className="p-6 max-w-6xl mx-auto">
       <ProductForm
         key={product.id}
         initialData={product}
