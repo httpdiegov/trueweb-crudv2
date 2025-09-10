@@ -32,7 +32,6 @@ export interface Prenda {
   precio: number;
   caracteristicas?: string | null;
   medidas?: string | null;
-  desc_completa: string;
   stock: number;
   estado: number; // 0 = oculto, 1 = visible
   separado: number; // 0 = no separado, 1 = separado

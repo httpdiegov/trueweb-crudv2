@@ -54,7 +54,6 @@ export function AddToCartButton({ product, className }: AddToCartButtonProps) {
         url: img.url || ''
       })),
       // Campos requeridos con valores mínimos necesarios
-      desc_completa: '',
       stock: 0,
       estado: 1,
       categoria_id: 0,

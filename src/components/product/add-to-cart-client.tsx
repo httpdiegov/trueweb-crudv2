@@ -64,7 +64,6 @@ export function AddToCartClient({ product, className }: AddToCartClientProps) {
       imagenes: imagenes,
       
       // Campos requeridos
-      desc_completa: product.desc_completa || '',
       stock: product.stock || 0,
       estado: product.estado || 1,
       categoria_id: product.categoria_id || 0,

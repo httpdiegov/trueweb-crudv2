@@ -35,7 +35,6 @@ const productFormSchemaClient = z.object({
   talla_id: z.coerce.number().int().positive({ message: 'Debe seleccionar una talla.' }),
   caracteristicas: z.string().min(5, { message: 'Características son requeridas (mínimo 5 caracteres).' }).optional().nullable(),
   medidas: z.string().min(1, {message: 'Medidas son requeridas (mínimo 1 caracter)'}).optional().nullable(),
-  desc_completa: z.string().min(10, { message: 'Descripción completa es requerida (mínimo 10 caracteres).' }),
   drop_name: z.string().optional().nullable(),
   marca_id: z.coerce.number().int().positive({ message: 'Debe seleccionar una marca.' }).optional().nullable(),
   separado: z.coerce.number().int().min(0).max(1).optional().default(0),
@@ -113,7 +112,6 @@ export function ProductForm({ initialData, onSubmitAction, isEditing }: ProductF
         talla_id: initialData.talla_id || 0,
         caracteristicas: initialData.caracteristicas || '',
         medidas: initialData.medidas || '',
-        desc_completa: initialData.desc_completa || '',
         drop_name: initialData.drop_name || '',
         separado: initialData.separado ?? 0,
       }
@@ -127,7 +125,6 @@ export function ProductForm({ initialData, onSubmitAction, isEditing }: ProductF
         talla_id: 0,
         caracteristicas: '',
         medidas: '',
-        desc_completa: '',
         drop_name: '',
         separado: 0,
       };
@@ -145,7 +142,6 @@ export function ProductForm({ initialData, onSubmitAction, isEditing }: ProductF
       talla_id: initialData?.talla_id || 0,
       caracteristicas: initialData?.caracteristicas || '',
       medidas: initialData?.medidas || '',
-      desc_completa: initialData?.desc_completa || '',
       drop_name: initialData?.drop_name || '',
       marca_id: initialData?.marca_id || null,
       separado: initialData?.separado ?? 0,
@@ -200,7 +196,6 @@ export function ProductForm({ initialData, onSubmitAction, isEditing }: ProductF
         talla_id: initialData.talla_id || 0,
         caracteristicas: initialData.caracteristicas || '',
         medidas: initialData.medidas || '',
-        desc_completa: initialData.desc_completa || '',
         drop_name: initialData.drop_name || '',
         marca_id: initialData.marca_id || null,
         separado: initialData.separado ?? 0,
@@ -734,20 +729,7 @@ export function ProductForm({ initialData, onSubmitAction, isEditing }: ProductF
                 </div>
               </div>
             </div>
-            <FormField
-              control={form.control}
-              name="desc_completa"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Descripción Completa</FormLabel>
-                  <FormControl>
-                    <Textarea rows={5} placeholder="Describe el producto en detalle..." {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            
+                    
             {/* Imágenes a Color */}
             <FormItem>
               <FormLabel>{isEditing && currentImages.length > 0 ? 'Imágenes a Color Actuales (se reemplazarán si subes nuevas)' : 'Subir Imágenes a Color'}</FormLabel>

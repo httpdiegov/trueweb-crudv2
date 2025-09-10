@@ -16,7 +16,6 @@ const productBaseSchema = z.object({
   marca_id: z.coerce.number().int().positive({ message: 'Debe seleccionar una marca.' }).optional().nullable(),
   caracteristicas: z.string().min(5, { message: 'Características son requeridas (mínimo 5 caracteres).' }).optional().nullable(),
   medidas: z.string().min(1, {message: 'Medidas son requeridas (mínimo 1 caracter)'}).optional().nullable(),
-  desc_completa: z.string().min(10, { message: 'Descripción completa es requerida (mínimo 10 caracteres).' }),
   drop_name: z.string().optional().nullable().transform(val => val === '' ? null : val),
   estado: z.coerce.number().int().optional().default(1), // Añadido para permitir el campo estado
   separado: z.coerce.number().int().min(0).max(1).optional().default(0), // 0 = no separado, 1 = separado
@@ -130,7 +129,7 @@ export async function fetchProducts(): Promise<Prenda[]> {
     const productsSql = `
       SELECT DISTINCT
         p.id, p.drop_name, p.sku, p.nombre_prenda, p.precio,
-        p.caracteristicas, p.medidas, p.desc_completa, p.stock, p.estado, p.separado,
+        p.caracteristicas, p.medidas, p.stock, p.estado, p.separado,
         p.categoria_id, c.nom_categoria AS categoria_nombre, c.prefijo AS categoria_prefijo,
         p.marca_id, m.nombre_marca AS marca_nombre,
         p.talla_id, t.nom_talla AS talla_nombre,
@@ -243,7 +242,6 @@ export async function fetchProducts(): Promise<Prenda[]> {
         precio: parseFloat(row.precio),
         caracteristicas: row.caracteristicas,
         medidas: row.medidas,
-        desc_completa: row.desc_completa,
         stock: parseInt(row.stock, 10),
         categoria_id: Number(row.categoria_id),
         talla_id: Number(row.talla_id),
@@ -271,7 +269,7 @@ export async function fetchPublicProducts(): Promise<Prenda[]> {
     const productsSql = `
       SELECT DISTINCT
         p.id, p.drop_name, p.sku, p.nombre_prenda, p.precio,
-        p.caracteristicas, p.medidas, p.desc_completa, p.stock, p.estado, p.separado,
+        p.caracteristicas, p.medidas, p.stock, p.estado, p.separado,
         p.categoria_id, c.nom_categoria AS categoria_nombre, c.prefijo AS categoria_prefijo,
         p.marca_id, m.nombre_marca AS marca_nombre,
         p.talla_id, t.nom_talla AS talla_nombre,
@@ -385,7 +383,6 @@ export async function fetchPublicProducts(): Promise<Prenda[]> {
         precio: parseFloat(row.precio),
         caracteristicas: row.caracteristicas,
         medidas: row.medidas,
-        desc_completa: row.desc_completa,
         stock: parseInt(row.stock, 10),
         categoria_id: Number(row.categoria_id),
         talla_id: Number(row.talla_id),
@@ -417,7 +414,7 @@ export async function fetchProductById(id: string | number): Promise<Prenda | un
     let productSql = `
       SELECT DISTINCT
         p.id, p.drop_name, p.sku, p.nombre_prenda, p.precio,
-        p.caracteristicas, p.medidas, p.desc_completa, p.stock, p.estado, p.separado,
+        p.caracteristicas, p.medidas, p.stock, p.estado, p.separado,
         p.categoria_id, c.nom_categoria AS categoria_nombre, c.prefijo AS categoria_prefijo,
         p.marca_id, m.nombre_marca AS marca_nombre,
         p.talla_id, t.nom_talla AS talla_nombre,
@@ -528,7 +525,6 @@ export async function fetchProductById(id: string | number): Promise<Prenda | un
       precio: parseFloat(row.precio),
       caracteristicas: row.caracteristicas,
       medidas: row.medidas,
-      desc_completa: row.desc_completa,
       stock: parseInt(row.stock, 10),
       categoria_id: Number(row.categoria_id),
       talla_id: Number(row.talla_id),
@@ -592,7 +588,7 @@ export async function createProduct(formData: FormData) {
 
     const sqlPrenda = `
       INSERT INTO prendas (
-        drop_name, sku, nombre_prenda, precio, caracteristicas, medidas, desc_completa, stock, categoria_id, talla_id, marca_id, separado)
+        drop_name, sku, nombre_prenda, precio, caracteristicas, medidas, stock, categoria_id, talla_id, marca_id, separado)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
     const paramsPrenda = [
@@ -602,7 +598,6 @@ export async function createProduct(formData: FormData) {
       productData.precio,
       productData.caracteristicas,
       productData.medidas,
-      productData.desc_completa,
       productData.stock,
       productData.categoria_id,
       productData.talla_id,
@@ -708,7 +703,7 @@ export async function updateProduct(id: number, formData: FormData) {
     const sqlPrenda = `
       UPDATE prendas SET
       drop_name = ?, sku = ?, nombre_prenda = ?, precio = ?, caracteristicas = ?, medidas = ?,
-      desc_completa = ?, stock = ?, categoria_id = ?, marca_id = ?, talla_id = ?, estado = ?, separado = ?
+      stock = ?, categoria_id = ?, marca_id = ?, talla_id = ?, estado = ?, separado = ?
       WHERE id = ?
     `;
     const paramsPrenda = [
@@ -718,7 +713,6 @@ export async function updateProduct(id: number, formData: FormData) {
       productData.precio,
       productData.caracteristicas,
       productData.medidas,
-      productData.desc_completa,
       productData.stock,
       productData.categoria_id,
       productData.marca_id || null, // Use null if marca_id is not provided
@@ -985,7 +979,7 @@ export async function fetchAllProducts(): Promise<Prenda[]> {
     const productsSql = `
       SELECT DISTINCT
         p.id, p.drop_name, p.sku, p.nombre_prenda, p.precio,
-        p.caracteristicas, p.medidas, p.desc_completa, p.stock, p.estado, p.separado,
+        p.caracteristicas, p.medidas, p.stock, p.estado, p.separado,
         p.categoria_id, c.nom_categoria AS categoria_nombre, c.prefijo AS categoria_prefijo,
         p.marca_id, m.nombre_marca AS marca_nombre,
         p.talla_id, t.nom_talla AS talla_nombre,
