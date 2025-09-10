@@ -1,19 +1,28 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-// Define las rutas que requieren autenticación
-const protectedRoutes = ['/admin'];
-
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  const isProtectedRoute = protectedRoutes.some(route => pathname.startsWith(route));
-
+  
+  // Rutas que requieren autenticación (excluyendo la página de login)
+  const requiresAuth = pathname.startsWith('/admin') && !pathname.startsWith('/admin/login');
+  
   // Verificar si el usuario está autenticado
   const isAuthenticated = request.cookies.get('admin-auth')?.value === 'true';
 
-  // Redirigir al home si no está autenticado y está en una ruta protegida
-  if (isProtectedRoute && !isAuthenticated) {
-    return NextResponse.redirect(new URL('/', request.url));
+  // Redirigir a login si no está autenticado y está en una ruta protegida
+  if (requiresAuth && !isAuthenticated) {
+    return NextResponse.redirect(new URL('/admin/login', request.url));
+  }
+
+  // Si está autenticado y trata de acceder a /admin, redirigir a /admin/dashboard
+  if (pathname === '/admin' && isAuthenticated) {
+    return NextResponse.redirect(new URL('/admin/dashboard', request.url));
+  }
+
+  // Si no está autenticado y trata de acceder a /admin, redirigir a /admin/login
+  if (pathname === '/admin' && !isAuthenticated) {
+    return NextResponse.redirect(new URL('/admin/login', request.url));
   }
 
   return NextResponse.next();
