@@ -61,7 +61,7 @@ export default function ProductDetailClient({ prenda, colorImages, structuredDat
               <div className="flex items-center gap-2">
                 <PackageCheck className="h-5 w-5 text-muted-foreground" />
                 <span className="font-medium text-sm">Stock:</span>
-                <span className="text-sm">{prenda.stock > 0 ? `${prenda.stock} unidades` : 'Agotado'}</span>
+                <span className="text-sm">{prenda.stock > 0 ? (prenda.stock === 1 ? 'Pieza única' : `${prenda.stock} unidades`) : 'Agotado'}</span>
               </div>
             </div>
             {(prenda.caracteristicas || prenda.medidas) && <Separator className="my-6" />}
