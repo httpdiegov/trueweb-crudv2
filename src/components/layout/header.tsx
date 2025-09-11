@@ -11,7 +11,7 @@ import { ThemeToggle } from '@/components/theme/theme-toggle';
 const LogoIcon = () => (
   <div className="relative w-28 h-10">
     <Image
-      src="https://truevintageperu.com/vtg/logo.jpg"
+      src="https://truevintageperu.com/vtg/logo.png "
       alt="True Vintage Logo"
       fill
       className="object-contain"
