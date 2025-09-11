@@ -4,7 +4,6 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { MessageCircle } from 'lucide-react';
 import { getFacebookTrackingData } from '@/utils/facebook-tracking';
-import { useRouter } from 'next/navigation';
 
 interface WhatsAppBuyButtonProps {
   href: string;
@@ -15,7 +14,6 @@ interface WhatsAppBuyButtonProps {
 }
 
 export function WhatsAppBuyButton({ href, sku, precio, productName, className }: WhatsAppBuyButtonProps) {
-  const router = useRouter();
   
   const handlePurchase = async () => {
     if (typeof window !== 'undefined') {
@@ -64,16 +62,7 @@ export function WhatsAppBuyButton({ href, sku, precio, productName, className }:
       // Abrir WhatsApp en nueva ventana
       window.open(href, '_blank', 'noopener,noreferrer');
       
-      // Generar ID de pedido único
-      const orderId = `ORDER-${Date.now()}-${sku}`;
-      
-      // Redirigir a página de confirmación con parámetros para evento Purchase
-      const confirmationUrl = `/purchase-confirmation?orderId=${orderId}&value=${precio}&currency=PEN&productName=${encodeURIComponent(productName || `Producto ${sku}`)}&sku=${sku}`;
-      
-      // Pequeño delay para asegurar que WhatsApp se abra primero
-      setTimeout(() => {
-        router.push(confirmationUrl);
-      }, 1000);
+  // (Eliminado) Ya no redirigimos a una página de confirmación interna.
     }
   };
   
