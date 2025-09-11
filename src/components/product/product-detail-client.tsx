@@ -130,6 +130,26 @@ export default function ProductDetailClient({ prenda, colorImages, structuredDat
                         />
                       </div>
                     )}
+
+                    {prenda.categoria_nombre?.toLowerCase() === 'pants' && (
+                      <div className="mt-4 mb-4">
+                        <img 
+                          src="/medidas/pants/pants.png" 
+                          alt="Guía de medidas para pants" 
+                          className="w-full max-w-md mx-auto rounded-lg border border-gray-200 shadow-sm"
+                        />
+                      </div>
+                    )}
+
+                    {prenda.categoria_nombre?.toLowerCase() === 'shorts' && (
+                      <div className="mt-4 mb-4">
+                        <img 
+                          src="/medidas/shorts/shorts.png" 
+                          alt="Guía de medidas para shorts" 
+                          className="w-full max-w-md mx-auto rounded-lg border border-gray-200 shadow-sm"
+                        />
+                      </div>
+                    )}
                     
                     <div className="mt-3 p-2 bg-amber-50 border border-amber-200 rounded text-amber-800">
                       <p className="text-xs font-medium">💡 Tip: Las medidas están tomadas con la prenda extendida sobre una superficie plana.</p>
