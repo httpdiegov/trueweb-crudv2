@@ -3,6 +3,7 @@
 
 import { revalidatePath } from "next/cache";
 import { query } from "@/lib/db";
+import { productCache } from "@/lib/cache";
 import type { Prenda, Imagen, Categoria, Talla, Marca } from "@/types";
 import { z } from "zod";
 
@@ -125,6 +126,16 @@ function sortProductImages(images: Imagen[]): Imagen[] {
 
 
 export async function fetchProducts(): Promise<Prenda[]> {
+  // 🚀 CACHÉ: Intentar obtener listado del caché primero
+  const cacheKey = 'products:all';
+  const cachedProducts = productCache.get<Prenda[]>(cacheKey);
+  if (cachedProducts) {
+    console.log(`✅ Listado de productos obtenido del caché - ¡SÚPER RÁPIDO!`);
+    return cachedProducts;
+  }
+  
+  console.log(`📀 Listado de productos no está en caché, consultando base de datos...`);
+  
   try {
     const productsSql = `
       SELECT DISTINCT
@@ -258,6 +269,48 @@ export async function fetchProducts(): Promise<Prenda[]> {
         separado: Number(row.separado)
       };
     });
+    
+    // 🚀 CACHÉ: Guardar listado en caché por 2 minutos (menos tiempo para que se actualice más frecuentemente)
+    const products = productRows.map((row: any) => {
+      const rawImagesForPrenda = imagesByPrendaId[Number(row.id)] || [];
+      const bwImageRegex = /-bw\d{2,}\.(jpg|jpeg|png|webp|gif)$/i;
+      
+      const bwImages = rawImagesForPrenda.filter((img: Imagen) => bwImageRegex.test(img.url));
+      const colorImages = rawImagesForPrenda.filter((img: Imagen) => !bwImageRegex.test(img.url));
+      
+      const sortedColorImages = sortProductImages(colorImages);
+      const sortedBwImages = sortProductImages(bwImages);
+
+      return {
+        id: Number(row.id),
+        drop_name: row.drop_name,
+        sku: row.sku,
+        nombre_prenda: row.nombre_prenda,
+        precio: parseFloat(row.precio),
+        caracteristicas: row.caracteristicas,
+        medidas: row.medidas,
+        stock: parseInt(row.stock, 10),
+        categoria_id: Number(row.categoria_id),
+        talla_id: Number(row.talla_id),
+        marca_id: row.marca_id ? Number(row.marca_id) : null,
+        marca_nombre: row.marca_nombre || null,
+        categoria_nombre: row.categoria_nombre,
+        categoria_prefijo: row.categoria_prefijo,
+        talla_nombre: row.talla_nombre,
+        imagenes: sortedColorImages,
+        imagenes_bw: sortedBwImages.map(img => ({ ...img, url: img.url.startsWith('bw_') ? img.url.substring(3) : img.url })),
+        created_at: row.created_at,
+        updated_at: row.updated_at,
+        estado: Number(row.estado),
+        separado: Number(row.separado)
+      };
+    });
+    
+    // 🚀 CACHÉ: Guardar listado en caché por 2 minutos
+    productCache.set(cacheKey, products, 2 * 60 * 1000);
+    console.log(`💾 Listado de ${products.length} productos guardado en caché por 2 minutos`);
+    
+    return products;
   } catch (error) {
     console.error("Error fetching products:", error);
     return [];
@@ -407,6 +460,17 @@ export async function fetchPublicProducts(): Promise<Prenda[]> {
 
 export async function fetchProductById(id: string | number): Promise<Prenda | undefined> {
   console.log('fetchProductById called with ID/SKU:', id); // Debug log
+  
+  // 🚀 CACHÉ: Intentar obtener del caché primero
+  const cacheKey = `product:${id}`;
+  const cachedProduct = productCache.get<Prenda>(cacheKey);
+  if (cachedProduct) {
+    console.log(`✅ Producto ${id} obtenido del caché - ¡SÚPER RÁPIDO!`);
+    return cachedProduct;
+  }
+  
+  console.log(`📀 Producto ${id} no está en caché, consultando base de datos...`);
+  
   try {
     // Determinar si el parámetro es un ID numérico o un SKU
     const isNumericId = !isNaN(Number(id));
@@ -540,6 +604,11 @@ export async function fetchProductById(id: string | number): Promise<Prenda | un
       estado: Number(row.estado),
       separado: Number(row.separado)
     };
+    
+    //  Cache: Guardar producto en caché por 5 minutos
+    productCache.set(cacheKey, prenda, 5 * 60 * 1000);
+    console.log(`💾 Producto ${id} guardado en caché por 5 minutos`);
+    
     return prenda;
 
   } catch (error) {

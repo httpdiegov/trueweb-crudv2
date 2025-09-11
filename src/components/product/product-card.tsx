@@ -1,262 +1,111 @@
-
 'use client';
 
 import Link from 'next/link';
-import Image from 'next/image';
 import type { Prenda } from '@/types';
-import { useState, useEffect } from 'react';
+import { useMemo, memo } from 'react';
 import { Badge } from '@/components/ui/badge';
+import { LazyImage } from '@/components/ui/lazy-image';
 
 interface ProductCardProps {
   prenda: Prenda;
 }
 
-export function ProductCard({ prenda }: ProductCardProps) {
-  const placeholderUrl = `https://placehold.co/400x400.png`;
-
-  // Simple URL validation and cleanup
-  const cleanImageUrl = (url: string | undefined): string | null => {
-    if (!url) return null;
+// 🚀 Optimized ProductCard with Lazy Loading
+export const ProductCard = memo(function ProductCard({ prenda }: ProductCardProps) {
+  // 🖼️ Get the best image URL with simple logic
+  const imageUrl = useMemo((): string => {
+    const bwImages = prenda.imagenes_bw || [];
+    const colorImages = prenda.imagenes || [];
     
-    try {
-      // Remove any query parameters and hash
-      let cleanUrl = url.split('?')[0].split('#')[0];
-      
-      // Ensure the URL is properly encoded
-      cleanUrl = encodeURI(cleanUrl);
-      
-      // If it's already a full URL, return as is
-      if (cleanUrl.startsWith('http')) {
-        return cleanUrl;
-      }
-      
-      // If it's a relative path, ensure it starts with a slash
-      if (!cleanUrl.startsWith('/')) {
-        cleanUrl = `/${cleanUrl}`;
-      }
-      
-      // For local development, use the full URL
-      if (process.env.NODE_ENV === 'development') {
-        // Remove any double slashes that might cause issues
-        cleanUrl = cleanUrl.replace(/([^:]\/)\/+/g, '$1');
-        return `https://truevintageperu.com${cleanUrl}`;
-      }
-      
-      // In production, use relative paths for Next.js optimization
-      return cleanUrl;
-    } catch (error) {
-      console.error('Error cleaning image URL:', { url, error });
-      return null;
+    // Priority 1: BW01 image
+    const bw01Image = bwImages.find(img => 
+      img?.url?.match(/-bw0?1\.(png|jpg|jpeg|webp)$/i)
+    );
+    
+    if (bw01Image?.url) {
+      return bw01Image.url.startsWith('http') 
+        ? bw01Image.url 
+        : `https://truevintageperu.com${bw01Image.url}`;
     }
-  };
+    
+    // Priority 2: Any BW image
+    const firstBwImage = bwImages.find(img => img?.url);
+    if (firstBwImage?.url) {
+      return firstBwImage.url.startsWith('http') 
+        ? firstBwImage.url 
+        : `https://truevintageperu.com${firstBwImage.url}`;
+    }
+    
+    // Priority 3: Color images
+    const firstColorImage = colorImages.find(img => img?.url);
+    if (firstColorImage?.url) {
+      return firstColorImage.url.startsWith('http') 
+        ? firstColorImage.url 
+        : `https://truevintageperu.com${firstColorImage.url}`;
+    }
+    
+    // Fallback placeholder
+    return 'https://placehold.co/400x400/e5e7eb/9ca3af?text=Sin+Imagen';
+  }, [prenda.imagenes_bw, prenda.imagenes]);
 
-  const getBestAvailableImage = (): { url: string; isBw01: boolean } => {
-    // Try to get the bw01 image first
-    if (prenda.imagenes_bw?.length) {
-      // First try to find bw01 or bw1
-      const bw01Image = prenda.imagenes_bw.find(img => 
-        img?.url?.match(/-bw0?1\.(png|jpg|jpeg|webp)$/i)
+  // 🎯 Product status badges
+  const statusBadge = useMemo(() => {
+    if (prenda.stock === 0) {
+      return (
+        <div className="absolute inset-0 flex items-center justify-center bg-black/50 z-10">
+          <div className="text-white px-6 py-3 text-sm font-bold uppercase bg-red-600 tracking-wider shadow-lg transform -rotate-12">
+            SOLD OUT
+          </div>
+        </div>
       );
-      
-      // If we found a bw01 image, use it
-      if (bw01Image?.url) {
-        const cleanUrl = cleanImageUrl(bw01Image.url);
-        if (cleanUrl) {
-          return { url: cleanUrl, isBw01: true };
-        }
-      }
-      
-      // If no bw01, try any other BW image
-      for (const img of prenda.imagenes_bw) {
-        if (img?.url) {
-          const cleanUrl = cleanImageUrl(img.url);
-          if (cleanUrl) {
-            return { 
-              url: cleanUrl, 
-              isBw01: img.url.includes('-bw01.') || img.url.includes('-bw1.') 
-            };
-          }
-        }
-      }
     }
     
-    // Fall back to color images if no BW images available
-    if (prenda.imagenes?.length) {
-      for (const img of prenda.imagenes) {
-        if (img?.url) {
-          const cleanUrl = cleanImageUrl(img.url);
-          if (cleanUrl) {
-            return { url: cleanUrl, isBw01: false };
-          }
-        }
-      }
+    if (prenda.separado === 1) {
+      return (
+        <div className="absolute inset-0 flex items-center justify-center bg-black/50 z-10">
+          <div className="bg-orange-500 text-white px-6 py-3 text-sm font-bold uppercase tracking-wider shadow-lg transform -rotate-12">
+            SEPARADO
+          </div>
+        </div>
+      );
     }
     
-    // If no valid images found, use placeholder
-    return { url: placeholderUrl, isBw01: false };
-  };
-
-  const [imageState, setImageState] = useState<{
-    url: string;
-    isBw01: boolean;
-    isLoading: boolean;
-    error: boolean;
-  }>(() => ({
-    ...getBestAvailableImage(),
-    isLoading: true,
-    error: false
-  }));
-  
-  // Efecto para manejar la carga inicial y cambios en las imágenes
-  useEffect(() => {
-    // Clear any failed image caches for this product
-    if (prenda.imagenes_bw?.length) {
-      prenda.imagenes_bw.forEach(img => {
-        if (img?.url) {
-          const cleanUrl = cleanImageUrl(img.url);
-          if (cleanUrl) {
-            sessionStorage.removeItem(`failed:${cleanUrl}`);
-          }
-        }
-      });
-    }
-    
-    const bestImage = getBestAvailableImage();
-    
-    setImageState({
-      ...bestImage,
-      isLoading: true,
-      error: false
-    });
-  }, [prenda.id, JSON.stringify(prenda.imagenes), JSON.stringify(prenda.imagenes_bw)]);
-
-
-
-
+    return null;
+  }, [prenda.stock, prenda.separado]);
 
   return (
-    <Link
-      href={`/products/${prenda.sku}`}
-      className="block group"
-
-    >
-  <div className="relative w-full overflow-hidden bg-transparent aspect-square group transition-all duration-300">
-        {imageState.isLoading && !imageState.error && (
-          <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
-            <div className="w-8 h-8 border-2 border-gray-300 border-t-blue-500 rounded-full animate-spin"></div>
-          </div>
-        )}
-        
-        <Image
-          src={imageState.url}
-          alt={prenda.nombre_prenda || 'Producto'}
-          fill
-          className={`object-cover transition-all duration-300 ${imageState.isLoading ? 'opacity-0' : 'opacity-100'}`}
-          sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
-          quality={100}
-          unoptimized={process.env.NODE_ENV === 'development'}
-          style={{ transition: 'filter 0.3s', filter: undefined }}
-          onMouseEnter={e => { e.currentTarget.style.filter = 'drop-shadow(0 2px 8px rgba(0,0,0,0.35))'; }}
-          onMouseLeave={e => { e.currentTarget.style.filter = ''; }}
-          onLoad={() => {
-            setImageState(prev => ({ ...prev, isLoading: false }));
-          }}
-          onError={(e) => {
-            // Mark this URL as failed in session storage
-            if (imageState.url && imageState.url !== placeholderUrl) {
-              sessionStorage.setItem(`failed:${imageState.url}`, 'true');
-            }
-            
-            // Get all available images in order of preference
-            const allImages = [];
-            
-            // 1. BW01 images first
-            if (prenda.imagenes_bw?.length) {
-              // First try to find bw01 or bw1
-              const bw01Image = prenda.imagenes_bw.find(img => 
-                img?.url?.match(/-bw0?1\.(png|jpg|jpeg|webp)$/i)
-              );
-              if (bw01Image?.url) {
-                const cleanUrl = cleanImageUrl(bw01Image.url);
-                if (cleanUrl) allImages.push({ url: cleanUrl, isBw01: true });
-              }
-              
-              // Then add other BW images
-              for (const img of prenda.imagenes_bw) {
-                if (img?.url) {
-                  const cleanUrl = cleanImageUrl(img.url);
-                  if (cleanUrl && !cleanUrl.includes('bw01') && !cleanUrl.includes('bw1')) {
-                    allImages.push({ url: cleanUrl, isBw01: false });
-                  }
-                }
-              }
-            }
-            
-            // 2. Then color images
-            if (prenda.imagenes?.length) {
-              for (const img of prenda.imagenes) {
-                if (img?.url) {
-                  const cleanUrl = cleanImageUrl(img.url);
-                  if (cleanUrl) allImages.push({ url: cleanUrl, isBw01: false });
-                }
-              }
-            }
-            
-            // Find the first image that hasn't failed yet and isn't the current one
-            const nextImage = allImages.find(img => 
-              img.url !== imageState.url && 
-              !sessionStorage.getItem(`failed:${img.url}`)
-            );
-            
-            if (nextImage) {
-              setImageState({
-                ...nextImage,
-                isLoading: true,
-                error: false
-              });
-            } else {
-              // No more images to try, show error
-              setImageState(prev => ({
-                ...prev,
-                isLoading: false,
-                error: true
-              }));
-            }
-          }}
+    <Link href={`/products/${prenda.sku}`} className="block group">
+      <div className="relative w-full overflow-hidden bg-white aspect-square transition-transform duration-300 group-hover:scale-105">
+        {/* 🚀 Lazy Loading Image */}
+        <LazyImage
+          src={imageUrl}
+          alt={prenda.nombre_prenda || 'Producto sin nombre'}
+          className="w-full h-full object-cover"
         />
         
-        {imageState.error && !imageState.isLoading && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-100 p-4 text-center">
-            <span className="text-gray-400 text-sm">Imagen no disponible</span>
-          </div>
-        )}
-        {prenda.stock === 0 && (
-          <div className="absolute inset-0 flex items-center justify-center bg-black/40">
-            <div className="bg-red-600 text-white text-xs sm:text-sm font-bold uppercase tracking-wider px-3 py-1.5 transform -rotate-12 scale-110">
-              SOLD OUT
-            </div>
-          </div>
-        )}
-        {prenda.separado === 1 && (
-          <div className="absolute inset-0 flex items-center justify-center bg-black/40">
-            <div className="bg-orange-500 text-white text-xs sm:text-sm font-bold uppercase tracking-wider px-3 py-1.5 transform -rotate-12 scale-110">
-              SEPARADO
-            </div>
-          </div>
-        )}
+        {/* Status overlay */}
+        {statusBadge}
       </div>
-      <div className="mt-2 text-center">
-  <h3 className="text-xs sm:text-sm font-medium text-foreground truncate">
+      
+      {/* Product info */}
+      <div className="mt-3 space-y-1">
+        <h3 className="text-sm font-medium text-gray-900 text-center truncate">
           {prenda.nombre_prenda}
         </h3>
-        {prenda.talla_nombre ? (
-          <p className="text-xs text-muted-foreground mt-0.5">
-            {prenda.talla_nombre} - S/{prenda.precio.toFixed(2)}
-          </p>
-        ) : (
-          <p className="text-sm font-semibold text-foreground mt-0.5">S/{prenda.precio.toFixed(2)}</p>
-        )}
+        
+        <div className="text-center">
+          <div className="text-sm text-gray-900">
+            {prenda.talla_nombre ? (
+              <span className="text-xs text-gray-500 font-semibold">{prenda.talla_nombre} - S/{prenda.precio.toFixed(2)}</span>
+            ) : (
+              <span className="font-semibold">S/{prenda.precio.toFixed(2)}</span>
+            )}
+          </div>
+        </div>
       </div>
     </Link>
   );
-}
+});
+
+// 🔍 Better debugging in React DevTools
+ProductCard.displayName = 'ProductCard';

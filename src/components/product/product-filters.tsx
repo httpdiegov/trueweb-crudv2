@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo, memo } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -18,7 +18,88 @@ interface ProductFiltersProps {
   availableSizes: Talla[];
 }
 
-export function ProductFilters({ availableCategories, availableSizes }: ProductFiltersProps) {
+// Memoized CategoryFilter component
+interface CategoryFilterProps {
+  categoria: Categoria;
+  isChecked: boolean;
+  onChange: (name: string, checked: boolean) => void;
+}
+
+const CategoryFilter = memo(({ categoria, isChecked, onChange }: CategoryFilterProps) => {
+  const handleChange = useCallback((checked: boolean | 'indeterminate') => {
+    onChange(categoria.nom_categoria, !!checked);
+  }, [categoria.nom_categoria, onChange]);
+
+  return (
+    <div className="flex items-center space-x-2">
+      <Checkbox
+        id={`cat-${categoria.id}`}
+        checked={isChecked}
+        onCheckedChange={handleChange}
+      />
+      <Label htmlFor={`cat-${categoria.id}`} className="font-normal cursor-pointer">
+        {categoria.nom_categoria}
+      </Label>
+    </div>
+  );
+});
+CategoryFilter.displayName = 'CategoryFilter';
+
+// Memoized SizeFilter component
+interface SizeFilterProps {
+  talla: Talla;
+  isChecked: boolean;
+  onChange: (name: string, checked: boolean) => void;
+}
+
+const SizeFilter = memo(({ talla, isChecked, onChange }: SizeFilterProps) => {
+  const handleChange = useCallback((checked: boolean | 'indeterminate') => {
+    onChange(talla.nom_talla, !!checked);
+  }, [talla.nom_talla, onChange]);
+
+  return (
+    <div className="flex items-center space-x-2">
+      <Checkbox
+        id={`talla-${talla.id}`}
+        checked={isChecked}
+        onCheckedChange={handleChange}
+      />
+      <Label htmlFor={`talla-${talla.id}`} className="font-normal cursor-pointer">
+        {talla.nom_talla}
+      </Label>
+    </div>
+  );
+});
+SizeFilter.displayName = 'SizeFilter';
+
+// Memoized PriceFilter component
+interface PriceFilterProps {
+  range: { label: string; min: number; max: number };
+  isSelected: boolean;
+  onValueChange: (priceLabel: string) => void;
+}
+
+const PriceFilter = memo(({ range, isSelected, onValueChange }: PriceFilterProps) => {
+  const handleChange = useCallback(() => {
+    onValueChange(range.label);
+  }, [range.label, onValueChange]);
+
+  return (
+    <div className="flex items-center space-x-2">
+      <RadioGroupItem 
+        value={range.label} 
+        id={`price-${range.label}`}
+        onClick={handleChange}
+      />
+      <Label htmlFor={`price-${range.label}`} className="font-normal cursor-pointer">
+        {range.label}
+      </Label>
+    </div>
+  );
+});
+PriceFilter.displayName = 'PriceFilter';
+
+export const ProductFilters = memo(({ availableCategories, availableSizes }: ProductFiltersProps) => {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -67,30 +148,70 @@ export function ProductFilters({ availableCategories, availableSizes }: ProductF
   }, [searchParams]);
 
 
-  const handleCategoryChange = (categoryName: string, checked: boolean) => {
+  const handleCategoryChange = useCallback((categoryName: string, checked: boolean) => {
     setSelectedCategoryNames(prev =>
       checked ? [...prev, categoryName] : prev.filter(name => name !== categoryName)
     );
-  };
+  }, []);
 
-  const handleSizeChange = (tallaName: string, checked: boolean) => {
+  const handleSizeChange = useCallback((tallaName: string, checked: boolean) => {
     setSelectedTallaNames(prev =>
       checked ? [...prev, tallaName] : prev.filter(name => name !== tallaName)
     );
-  };
+  }, []);
 
-  const handlePriceChange = (priceLabel: string) => {
+  const handlePriceChange = useCallback((priceLabel: string) => {
     setSelectedPriceRange(priceLabel);
-  };
+  }, []);
 
-  const clearFilters = () => {
+  const clearFilters = useCallback(() => {
     setSelectedCategoryNames([]);
     setSelectedTallaNames([]);
     setSelectedPriceRange(PRECIO_RANGES[0].label);
     // updateUrlParams will be called by the useEffect dependency change
-  };
+  }, []);
 
-  const hasActiveFilters = selectedCategoryNames.length > 0 || selectedTallaNames.length > 0 || selectedPriceRange !== PRECIO_RANGES[0].label;
+  const hasActiveFilters = useMemo(() => 
+    selectedCategoryNames.length > 0 || 
+    selectedTallaNames.length > 0 || 
+    selectedPriceRange !== PRECIO_RANGES[0].label
+  , [selectedCategoryNames.length, selectedTallaNames.length, selectedPriceRange]);
+
+  // Memoized category filters to prevent unnecessary re-renders
+  const categoryFilters = useMemo(() => 
+    availableCategories.map(categoria => (
+      <CategoryFilter
+        key={categoria.id}
+        categoria={categoria}
+        isChecked={selectedCategoryNames.includes(categoria.nom_categoria)}
+        onChange={handleCategoryChange}
+      />
+    ))
+  , [availableCategories, selectedCategoryNames, handleCategoryChange]);
+
+  // Memoized size filters to prevent unnecessary re-renders
+  const sizeFilters = useMemo(() => 
+    availableSizes.map(talla => (
+      <SizeFilter
+        key={talla.id}
+        talla={talla}
+        isChecked={selectedTallaNames.includes(talla.nom_talla)}
+        onChange={handleSizeChange}
+      />
+    ))
+  , [availableSizes, selectedTallaNames, handleSizeChange]);
+
+  // Memoized price filters to prevent unnecessary re-renders
+  const priceFilters = useMemo(() => 
+    PRECIO_RANGES.map(range => (
+      <PriceFilter
+        key={range.label}
+        range={range}
+        isSelected={selectedPriceRange === range.label}
+        onValueChange={handlePriceChange}
+      />
+    ))
+  , [selectedPriceRange, handlePriceChange]);
 
   return (
     <div className="lg:sticky lg:top-20 lg:h-[calc(100vh-5rem)]">
@@ -103,32 +224,14 @@ export function ProductFilters({ availableCategories, availableSizes }: ProductF
             <AccordionItem value="categorias">
               <AccordionTrigger className="font-headline text-lg">Categoría</AccordionTrigger>
               <AccordionContent className="space-y-2">
-                {availableCategories.map(categoria => (
-                  <div key={categoria.id} className="flex items-center space-x-2">
-                    <Checkbox
-                      id={`cat-${categoria.id}`}
-                      checked={selectedCategoryNames.includes(categoria.nom_categoria)}
-                      onCheckedChange={(checked) => handleCategoryChange(categoria.nom_categoria, !!checked)}
-                    />
-                    <Label htmlFor={`cat-${categoria.id}`} className="font-normal cursor-pointer">{categoria.nom_categoria}</Label>
-                  </div>
-                ))}
+                {categoryFilters}
               </AccordionContent>
             </AccordionItem>
 
             <AccordionItem value="tallas">
               <AccordionTrigger className="font-headline text-lg">Talla</AccordionTrigger>
               <AccordionContent className="space-y-2">
-                {availableSizes.map(talla => (
-                  <div key={talla.id} className="flex items-center space-x-2">
-                    <Checkbox
-                      id={`talla-${talla.id}`}
-                      checked={selectedTallaNames.includes(talla.nom_talla)}
-                      onCheckedChange={(checked) => handleSizeChange(talla.nom_talla, !!checked)}
-                    />
-                    <Label htmlFor={`talla-${talla.id}`} className="font-normal cursor-pointer">{talla.nom_talla}</Label>
-                  </div>
-                ))}
+                {sizeFilters}
               </AccordionContent>
             </AccordionItem>
 
@@ -136,12 +239,7 @@ export function ProductFilters({ availableCategories, availableSizes }: ProductF
               <AccordionTrigger className="font-headline text-lg">Rango de Precio</AccordionTrigger>
               <AccordionContent>
                 <RadioGroup value={selectedPriceRange} onValueChange={handlePriceChange} className="space-y-2">
-                  {PRECIO_RANGES.map(range => (
-                    <div key={range.label} className="flex items-center space-x-2">
-                      <RadioGroupItem value={range.label} id={`price-${range.label}`} />
-                      <Label htmlFor={`price-${range.label}`} className="font-normal cursor-pointer">{range.label}</Label>
-                    </div>
-                  ))}
+                  {priceFilters}
                 </RadioGroup>
               </AccordionContent>
             </AccordionItem>
@@ -156,4 +254,5 @@ export function ProductFilters({ availableCategories, availableSizes }: ProductF
       </Card>
     </div>
   );
-}
+});
+ProductFilters.displayName = 'ProductFilters';

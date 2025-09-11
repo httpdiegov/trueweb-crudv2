@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useState, ReactNode } from 'react';
+import { createContext, useContext, useState, ReactNode, useMemo, useCallback } from 'react';
 import { Prenda } from '@/types';
 import { getFacebookTrackingData } from '@/utils/facebook-tracking';
 
@@ -28,12 +28,18 @@ export function CartProvider({ children }: { children: ReactNode }) {
   });
   const [isOpen, setIsOpen] = useState(false);
 
-  const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
-  const totalPrice = items.reduce((sum, item) => sum + (item.precio * item.quantity), 0);
+  // Memoized totals to prevent recalculation on every render
+  const totalItems = useMemo(() => 
+    items.reduce((sum, item) => sum + item.quantity, 0)
+  , [items]);
+  
+  const totalPrice = useMemo(() => 
+    items.reduce((sum, item) => sum + (item.precio * item.quantity), 0)
+  , [items]);
   
   console.log('Estado actual del carrito:', { items, totalItems, totalPrice });
 
-  const addItem = (item: Prenda, eventId?: string) => {
+  const addItem = useCallback((item: Prenda, eventId?: string) => {
     console.log('=== AÑADIENDO AL CARRITO ===');
     console.log('Item recibido:', JSON.stringify(item, null, 2));
     
@@ -98,36 +104,37 @@ export function CartProvider({ children }: { children: ReactNode }) {
       
       return newItems;
     });
-  };
+  }, []); // No dependencies needed as we use functional updates
 
-  const removeItem = (sku: string) => {
+  const removeItem = useCallback((sku: string) => {
     setItems(prevItems => prevItems.filter(item => item.sku !== sku));
-  };
+  }, []);
 
-  const updateQuantity = (sku: string, quantity: number) => {
+  const updateQuantity = useCallback((sku: string, quantity: number) => {
     if (quantity <= 0) {
       removeItem(sku);
       return;
     }
     // No permitir modificar la cantidad, siempre será 1
     console.log('No se puede modificar la cantidad, las prendas son únicas');
-  };
+  }, [removeItem]);
 
-  const toggleCart = () => setIsOpen(!isOpen);
+  const toggleCart = useCallback(() => setIsOpen(!isOpen), [isOpen]);
+
+  // Memoize the context value to prevent unnecessary re-renders of consumers
+  const contextValue = useMemo(() => ({
+    items,
+    isOpen,
+    addItem,
+    removeItem,
+    updateQuantity,
+    toggleCart,
+    totalItems,
+    totalPrice,
+  }), [items, isOpen, addItem, removeItem, updateQuantity, toggleCart, totalItems, totalPrice]);
 
   return (
-    <CartContext.Provider
-      value={{
-        items,
-        isOpen,
-        addItem,
-        removeItem,
-        updateQuantity,
-        toggleCart,
-        totalItems,
-        totalPrice,
-      }}
-    >
+    <CartContext.Provider value={contextValue}>
       {children}
     </CartContext.Provider>
   );
