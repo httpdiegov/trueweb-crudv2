@@ -38,20 +38,23 @@ export function LazyImage({
     return () => observer.disconnect();
   }, []);
 
-  // Load image when intersecting
+  // Load image when intersecting or when src changes
   useEffect(() => {
-    if (isIntersecting && !isLoaded) {
+    if (isIntersecting) {
+      // When src changes, we want to show the loading state again briefly
+      setIsLoaded(false);
       const img = new Image();
       img.onload = () => {
         setImageSrc(src);
         setIsLoaded(true);
       };
       img.onerror = () => {
-        // Keep placeholder on error
+        // Keep placeholder on error, but mark as loaded to avoid loops
+        setIsLoaded(true);
       };
       img.src = src;
     }
-  }, [isIntersecting, src, isLoaded]);
+  }, [isIntersecting, src]);
 
   // Don't render img element until we have a valid src
   if (!imageSrc) {
