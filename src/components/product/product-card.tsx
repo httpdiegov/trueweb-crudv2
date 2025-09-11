@@ -75,7 +75,7 @@ export const ProductCard = memo(function ProductCard({ prenda }: ProductCardProp
 
   return (
     <Link href={`/products/${prenda.sku}`} className="block group">
-      <div className="relative w-full overflow-hidden bg-white aspect-square transition-transform duration-300 group-hover:scale-105">
+  <div className="relative w-full overflow-hidden bg-transparent aspect-square transition-transform duration-300 group-hover:scale-105">
         {/* 🚀 Lazy Loading Image */}
         <LazyImage
           src={imageUrl}
@@ -89,7 +89,7 @@ export const ProductCard = memo(function ProductCard({ prenda }: ProductCardProp
       
       {/* Product info */}
       <div className="mt-3 space-y-1">
-        <h3 className="text-sm font-medium text-gray-900 text-center truncate">
+  <h3 className="text-sm font-medium text-gray-900 dark:text-white text-center truncate">
           {prenda.nombre_prenda}
         </h3>
         
