@@ -658,7 +658,7 @@ export async function createProduct(formData: FormData) {
     const sqlPrenda = `
       INSERT INTO prendas (
         drop_name, sku, nombre_prenda, precio, caracteristicas, medidas, stock, categoria_id, talla_id, marca_id, separado)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
     const paramsPrenda = [
       productData.drop_name,
