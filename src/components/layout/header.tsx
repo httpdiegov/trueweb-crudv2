@@ -45,13 +45,6 @@ export function Header() {
 
           <CartButton />
           <ThemeToggle />
-          {/* Botón de administrador */}
-          <Link
-            href="/admin"
-            className="hidden sm:inline-flex items-center text-xs text-muted-foreground hover:text-foreground transition-colors"
-          >
-            <FaUserShield className="h-4 w-4" />
-          </Link>
         </nav>
       </div>
     </header>
