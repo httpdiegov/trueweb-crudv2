@@ -172,9 +172,6 @@ export default async function PeruPage() {
               <Truck className="h-4 w-4" />
               <span>2-7 días hábiles</span>
             </div>
-            <div className="flex items-center gap-2">
-              <Badge variant="secondary">Envío gratis desde S/200</Badge>
-            </div>
           </div>
         </div>
 
@@ -272,17 +269,7 @@ export default async function PeruPage() {
 
         {/* Información de envíos */}
         <div className="bg-muted/50 p-8 rounded-lg mb-12">
-          <h2 className="text-2xl font-bold text-center mb-6">Información de Envíos</h2>
           <div className="grid md:grid-cols-3 gap-6">
-            <div>
-              <h3 className="font-semibold text-lg mb-3">Costos de Envío</h3>
-              <ul className="text-sm text-muted-foreground space-y-2">
-                <li>• Lima y Callao: S/10</li>
-                <li>• Principales ciudades: S/15</li>
-                <li>• Provincias: S/20</li>
-                <li>• <strong>Envío gratis desde S/200</strong></li>
-              </ul>
-            </div>
             
             <div>
               <h3 className="font-semibold text-lg mb-3">Tiempos de Entrega</h3>

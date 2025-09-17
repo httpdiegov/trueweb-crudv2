@@ -8,7 +8,7 @@ import Link from 'next/link';
 
 export const metadata: Metadata = {
   title: 'Ropa Vintage en Lima | True Vintage Perú - Tienda Online',
-  description: 'Compra ropa vintage americana en Lima, Perú. Entrega en toda Lima Metropolitana. Prendas únicas de los 80s, 90s y 2000s. ¡Envío gratis en pedidos mayores a S/150!',
+  description: 'Compra ropa vintage americana en Lima, Perú. Entrega en toda Lima Metropolitana. Prendas únicas de los 80s, 90s y 2000s.',
   keywords: 'ropa vintage Lima, tienda vintage Lima, ropa americana Lima, segunda mano Lima, thrift shop Lima, vintage fashion Lima Peru, ropa retro Lima',
   openGraph: {
     title: 'Ropa Vintage en Lima | True Vintage Perú',
@@ -161,9 +161,6 @@ export default async function LimaPage() {
               <Clock className="h-4 w-4" />
               <span>Envío en 24-48 horas</span>
             </div>
-            <div className="flex items-center gap-2">
-              <Badge variant="secondary">Envío gratis desde S/150</Badge>
-            </div>
           </div>
         </div>
 
@@ -273,12 +270,7 @@ export default async function LimaPage() {
               <h3 className="font-semibold mb-2">¿Hacen entregas en toda Lima?</h3>
               <p className="text-muted-foreground text-sm">Sí, realizamos entregas en toda Lima Metropolitana. El tiempo de entrega es de 24-48 horas hábiles.</p>
             </div>
-            
-            <div>
-              <h3 className="font-semibold mb-2">¿Cuál es el costo de envío en Lima?</h3>
-              <p className="text-muted-foreground text-sm">El envío tiene un costo de S/10 en Lima. ¡Envío gratis en compras mayores a S/150!</p>
-            </div>
-            
+                    
             <div>
               <h3 className="font-semibold mb-2">¿Puedo ver las prendas antes de comprar?</h3>
               <p className="text-muted-foreground text-sm">Todas nuestras prendas tienen fotos detalladas y medidas exactas. También ofrecemos asesoría personalizada vía WhatsApp.</p>

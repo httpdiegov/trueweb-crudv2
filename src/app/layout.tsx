@@ -9,7 +9,7 @@ import GlobalErrorScreen from '@/components/ui/GlobalErrorScreen';
 
 export const metadata: Metadata = {
   title: 'True Vintage Perú | Ropa Vintage Americana y Segunda Mano en Lima',
-  description: 'Tienda online de ropa vintage americana, segunda mano y thrift en Perú. Encuentra prendas únicas de los 80s, 90s y 2000s. Envíos a todo el país desde Lima.',
+  description: 'Tienda online de ropa vintage americana, segunda mano en Perú. Encuentra prendas únicas de los 80s, 90s y 2000s. Envíos a todo el país desde Lima.',
   keywords: 'ropa vintage, ropa americana, segunda mano, thrift shop, ropa vintage Lima, ropa vintage Perú, ropa 90s, ropa 80s, ropa 2000s, vintage fashion, sustainable fashion, moda sostenible',
   authors: [{ name: 'True Vintage Perú' }],
   creator: 'True Vintage Perú',
